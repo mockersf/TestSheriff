@@ -18,7 +18,8 @@ class Test_TestSheriff(object):
         import TestSheriff
         self.app = TestSheriff.app.test_client()
         TestSheriff.prefix = 'test'
-        self._base_status = TestSheriff.base()
+        self._base_status = TestSheriff.base()['status']
+        self._base_test = TestSheriff.base()['test']
 
     def teardown_method(self, method):
         self._base_status.drop()
@@ -45,6 +46,9 @@ class Test_TestSheriff(object):
         assert res['status']['transaction_id'] == res['transaction_id']
         ds_after = self._base_status.find_one({'_id': ObjectId(res['status']['_id'])})
         assert ds_after['test_id'] == my_id
+        test_after = self._base_test.find_one({'_id': my_id})
+        assert test_after['on'] == res['status']['on']
+        assert test_after['type'] == data['type']
 
     def test_get_1_status(self):
         my_id = str(uuid.uuid4())
@@ -55,12 +59,23 @@ class Test_TestSheriff(object):
         data = {'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
         json_query = prepare_json_query(data)
         rv = self.app.put('/status/{0}'.format(my_id), headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 200
         rv = self.app.get('/status/{0}'.format(my_id))
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
         assert res['result'] == 'Success'
         assert res['status']['status'] == 'SUCCESS'
         assert res['status']['details'] == data['details']
+        assert res['status']['last'] == 'true'
+        assert res['status']['test_id'] == my_id
+        assert res['status']['comment'] == ''
+        self._base_status.remove({'test_id': my_id})
+        rv = self.app.get('/status/{0}'.format(my_id))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        assert res['status']['status'] == 'UNKNOWN'
+        assert res['status']['details'] == {}
         assert res['status']['last'] == 'true'
         assert res['status']['test_id'] == my_id
         assert res['status']['comment'] == ''
