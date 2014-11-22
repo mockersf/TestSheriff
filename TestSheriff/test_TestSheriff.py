@@ -23,6 +23,7 @@ class Test_TestSheriff(object):
 
     def teardown_method(self, method):
         self._base_status.drop()
+        self._base_test.drop()
 
     def test_save_1_status(self):
         my_id = str(uuid.uuid4())
@@ -103,6 +104,8 @@ class Test_TestSheriff(object):
         assert len(ads_after1) == 3
         ads_after1 = [ds for ds in self._base_status.find({'test_id': my_id1, 'last': 'true'})]
         assert len(ads_after1) == 1
+        atest_after = [at for at in self._base_test.find({})]
+        assert len(atest_after) == 2
         rv = self.app.get('/status/{0}'.format(my_id1))
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
