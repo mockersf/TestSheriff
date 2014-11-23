@@ -1,2 +1,2 @@
 [run]
-omit = TestSheriff/test_*
+omit = TestSheriff/tests/*
