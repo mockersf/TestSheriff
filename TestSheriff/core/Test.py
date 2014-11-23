@@ -1,5 +1,6 @@
-import Base
 import datetime
+
+from . import Base
 
 
 class Test:

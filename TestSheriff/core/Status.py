@@ -1,5 +1,6 @@
-import Base
 import datetime
+
+from . import Base
 
 
 class Status:
@@ -66,7 +67,6 @@ class Status:
     def save(self):
         self._on = datetime.datetime.now()
         self._id = str(Base.Base().insert('status', self.to_dict()))
-        print self._id
 
     def get_last(self):
         filter = self.to_dict()

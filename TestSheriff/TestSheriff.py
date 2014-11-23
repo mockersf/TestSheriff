@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, abort, g
+from flask import Flask, jsonify, request
 
 from core.Test import Test
 from core.Status import Status
