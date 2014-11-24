@@ -41,13 +41,19 @@ class Test:
             test._last_seen = datetime.datetime.strptime(test_dict['last_seen'], Base.time_format)
         return test
 
-    def get_all(self):
-        filter = self.to_dict()
-        return Base.Base().get_all('test', filter)
+    def get_all(self, additional_filter=None):
+        query_filter = self.to_dict()
+        if additional_filter is not None:
+            query_filter.update(additional_filter)
+        return [Test().from_dict(bt) for bt in Base.Base().get_all('test', query_filter)]
+
+    def get_all_ownerless(self):
+        additional_filter = {'owner': None}
+        return self.get_all(additional_filter)
 
     def get_one(self):
-        filter = self.to_dict()
-        res = Base.Base().get_one('test', filter)
+        query_filter = self.to_dict()
+        res = Base.Base().get_one('test', query_filter)
         return self.from_dict(res) if res is not None else None
 
     def save(self):

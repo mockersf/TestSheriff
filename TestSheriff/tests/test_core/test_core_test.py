@@ -60,8 +60,10 @@ class Test_core_test(object):
         Test(test_id2, owner, test_type).save()
         Test(test_id3, owner2, test_type).save()
         test = Test(owner=owner)
-        list = test.get_all()
-        assert len(list) == 2
+        atl = test.get_all()
+        assert len(atl) == 2
+        assert atl[0]._test_id == test_id1
+        assert atl[1]._test_id == test_id2
 
     def test_get_one(self):
         from core.Test import Test
@@ -87,3 +89,25 @@ class Test_core_test(object):
         test = Test(test_id=test_id3)
         one = test.get_one()
         assert one is None
+
+    def test_get_all_ownerless(self):
+        from core.Test import Test
+        test_id1 = str(uuid.uuid4())
+        test_id2 = str(uuid.uuid4())
+        test_id3 = str(uuid.uuid4())
+        test_id4 = str(uuid.uuid4())
+        owner1 = str(uuid.uuid4())
+        test_type1 = str(uuid.uuid4())
+        test_type2 = str(uuid.uuid4())
+        Test(test_id1, owner1, test_type1).save()
+        Test(test_id2, owner1, test_type2).save()
+        Test(test_id3, None, test_type1).save()
+        Test(test_id4, None, test_type2).save()
+        test = Test(test_type=test_type1)
+        ato = test.get_all_ownerless()
+        assert len(ato) == 1
+        assert ato[0]._test_id == test_id3
+        ato = Test().get_all_ownerless()
+        assert len(ato) == 2
+        assert ato[0]._test_id == test_id3
+        assert ato[1]._test_id == test_id4
