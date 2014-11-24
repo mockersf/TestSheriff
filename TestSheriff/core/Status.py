@@ -12,9 +12,8 @@ class Status:
     _last = None
     _id = None
 
-    def __init__(self, test_id=None, test_type=None,
-                 status=None, on=None, details=None,
-                 last=None, base_id=None):
+    def __init__(self, test_id=None, test_type=None, status=None, on=None,
+                 details=None, last=None, base_id=None):
         self._test_id = test_id
         self._type = test_type
         self._on = on
@@ -25,7 +24,7 @@ class Status:
 
     def __repr__(self):
         return '<Status {0} ({1}) : {2} on the {3}>'\
-            .format(self._test_id, self._type, self._status, self._on)
+                    .format(self._test_id, self._type, self._status, self._on)
 
     def to_dict(self):
         dict_of_self = {}
@@ -52,8 +51,7 @@ class Status:
         if 'type' in status_dict:
             status._type = status_dict['type']
         if 'on' in status_dict:
-            status._on = datetime.datetime.strptime(status_dict['on'],
-                                                    Base.time_format)
+            status._on = datetime.datetime.strptime(status_dict['on'], Base.time_format)
         if 'status' in status_dict:
             status._status = status_dict['status']
         if 'details' in status_dict:
@@ -72,15 +70,10 @@ class Status:
         filter = self.to_dict()
         filter['last'] = True
         res = Base.Base().get_one('status', filter)
-        if res is None:
-            return None
-        else:
-            return self.from_dict(res)
-
+        return self.from_dict(res) if res is not None else None
 
     def update_last(self):
-        Base.Base().update('status', {'test_id': self._test_id, 'last': True},
-                           {'last': False})
+        Base.Base().update('status', {'test_id': self._test_id, 'last': True}, {'last': False})
 
     def save_and_update(self):
         self.update_last()

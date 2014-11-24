@@ -21,8 +21,7 @@ class Base:
         return [item for item in self._base[collection].find(filter)]
 
     def upsert_by_id(self, collection, object_id, object):
-        res = self._base[collection].update({'_id': object_id},
-                                            {'$set': object}, upsert=True)
+        res = self._base[collection].update({'_id': object_id}, {'$set': object}, upsert=True)
         return res['err'] is None
 
     def insert(self, collection, object):

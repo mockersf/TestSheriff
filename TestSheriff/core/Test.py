@@ -15,8 +15,7 @@ class Test:
         self._type = test_type
 
     def __repr__(self):
-        return '<Test {0} ({1}) by {2}>'.format(self._test_id, self._type,
-                                                self._owner)
+        return '<Test {0} ({1}) by {2}>'.format(self._test_id, self._type, self._owner)
 
     def to_dict(self):
         dict_of_self = {}
@@ -39,8 +38,7 @@ class Test:
         if 'owner' in test_dict:
             test._owner = test_dict['owner']
         if 'last_seen' in test_dict:
-            test._last_seen = datetime.datetime.strptime(test_dict['last_seen'],
-                                                         Base.time_format)
+            test._last_seen = datetime.datetime.strptime(test_dict['last_seen'], Base.time_format)
         return test
 
     def get_all(self):
@@ -50,10 +48,7 @@ class Test:
     def get_one(self):
         filter = self.to_dict()
         res = Base.Base().get_one('test', filter)
-        if res is None:
-            return None
-        else:
-            return self.from_dict(res)
+        return self.from_dict(res) if res is not None else None
 
     def save(self):
         self._last_seen = datetime.datetime.now()
