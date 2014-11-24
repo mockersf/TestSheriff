@@ -67,9 +67,9 @@ class Status:
         self._id = str(Base.Base().insert('status', self.to_dict()))
 
     def get_last(self):
-        filter = self.to_dict()
-        filter['last'] = True
-        res = Base.Base().get_one('status', filter)
+        query_filter = self.to_dict()
+        query_filter['last'] = True
+        res = Base.Base().get_one('status', query_filter)
         return self.from_dict(res) if res is not None else None
 
     def update_last(self):
