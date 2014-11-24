@@ -58,5 +58,4 @@ class Test:
 
     def save(self):
         self._last_seen = datetime.datetime.now()
-        self._last = True
         return Base.Base().upsert_by_id('test', self._test_id, self.to_dict())

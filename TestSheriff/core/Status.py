@@ -1,6 +1,7 @@
 import datetime
 
 from . import Base
+from .Test import Test
 
 
 class Status:
@@ -63,12 +64,14 @@ class Status:
         return status
 
     def save(self):
+        Test(test_id=self._test_id, test_type=self._type).save()
         self._on = datetime.datetime.now()
         self._id = str(Base.Base().insert('status', self.to_dict()))
 
     def get_last(self):
         query_filter = self.to_dict()
         query_filter['last'] = True
+        Test(test_id=self._test_id).save()
         res = Base.Base().get_one('status', query_filter)
         return self.from_dict(res) if res is not None else None
 

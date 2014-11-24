@@ -19,7 +19,6 @@ def save_status(test_id):
     status = Status(test_id=test_id, test_type=data['type'],
                     status=data['status'], details=data['details'])
     status.save_and_update()
-    Test(test_id=test_id, test_type=data['type']).save()
     return jsonify(result='Success', status=status.to_dict())
 
 def get_status(test_id):
@@ -27,9 +26,6 @@ def get_status(test_id):
     if status is None:
         current_test = Test(test_id=test_id)
         test = current_test.get_one()
-        if test is None:
-            current_test.save()
-            test = current_test.get_one()
         status = Status(test_id=test_id, on=test._last_seen, status='UNKNOWN',
                         details={}, test_type=test._type, last=True)
     return jsonify(result='Success', status=status.to_dict())
