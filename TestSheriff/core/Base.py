@@ -14,20 +14,20 @@ class Base:
     def get_base(self):
         return self._base
 
-    def get_one(self, collection, filter={}):
-        return self._base[collection].find_one(filter)
+    def get_one(self, collection, query_filter={}):
+        return self._base[collection].find_one(query_filter)
 
-    def get_all(self, collection, filter={}):
-        return [item for item in self._base[collection].find(filter)]
+    def get_all(self, collection, query_filter={}):
+        return [item for item in self._base[collection].find(query_filter)]
 
-    def upsert_by_id(self, collection, object_id, object):
-        res = self._base[collection].update({'_id': object_id}, {'$set': object}, upsert=True)
+    def upsert_by_id(self, collection, object_id, object_to_update):
+        res = self._base[collection].update({'_id': object_id}, {'$set': object_to_update}, upsert=True)
         return res['err'] is None
 
-    def insert(self, collection, object):
-        res = self._base[collection].insert(object)
+    def insert(self, collection, object_to_insert):
+        res = self._base[collection].insert(object_to_insert)
         return res
 
-    def update(self, collection, a, b):
-        res = self._base[collection].update(a, {'$set': b})
+    def update(self, collection, object_to_update, updated):
+        res = self._base[collection].update(object_to_update, {'$set': updated})
         return res['err'] is None
