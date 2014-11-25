@@ -29,7 +29,8 @@ class Test:
             dict_of_self['last_seen'] = self._last_seen.strftime(Base.time_format)
         return dict_of_self
 
-    def from_dict(self, test_dict):
+    @staticmethod
+    def from_dict(test_dict):
         test = Test()
         if 'test_id' in test_dict:
             test._test_id = test_dict['test_id']
@@ -45,7 +46,7 @@ class Test:
         query_filter = self.to_dict()
         if additional_filter is not None:
             query_filter.update(additional_filter)
-        return [Test().from_dict(bt) for bt in Base.Base().get_all('test', query_filter)]
+        return [Test.from_dict(bt) for bt in Base.Base().get_all('test', query_filter)]
 
     def get_all_ownerless(self):
         additional_filter = {'owner': None}
@@ -54,7 +55,7 @@ class Test:
     def get_one(self):
         query_filter = self.to_dict()
         res = Base.Base().get_one('test', query_filter)
-        return self.from_dict(res) if res is not None else None
+        return Test.from_dict(res) if res is not None else None
 
     def save(self):
         self._last_seen = datetime.datetime.now()

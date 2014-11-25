@@ -45,7 +45,8 @@ class Status:
             dict_of_self['_id'] = self._id
         return dict_of_self
 
-    def from_dict(self, status_dict):
+    @staticmethod
+    def from_dict(status_dict):
         status = Status()
         if 'test_id' in status_dict:
             status._test_id = status_dict['test_id']
@@ -73,7 +74,7 @@ class Status:
         query_filter['last'] = True
         Test(test_id=self._test_id).save()
         res = Base.Base().get_one('status', query_filter)
-        return self.from_dict(res) if res is not None else None
+        return Status.from_dict(res) if res is not None else None
 
     def update_last(self):
         Base.Base().update('status', {'test_id': self._test_id, 'last': True}, {'last': False})
