@@ -120,10 +120,10 @@ class Test_core_status(object):
         status2.save_and_update()
         at = Base().get_all('test', {})
         assert len(at) == 1
-        time.sleep(2)
+        time.sleep(3)
         sl = Status(test_id).get_last()
         assert sl._status == 'SUCCESS'
         assert sl._test_id == test_id
         at = Base().get_all('test', {})
         assert len(at) == 1
-        assert at[0]['last_seen'] == (status2._on + datetime.timedelta(seconds=2)).strftime(time_format)
+        assert datetime.datetime.strptime(at[0]['last_seen'], time_format) > status2._on + datetime.timedelta(seconds=1)
