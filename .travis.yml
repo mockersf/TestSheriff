@@ -7,8 +7,6 @@ python:
   - 3.4
 install:
   - pip install -r pip_requirements.txt
-before_script:
-  - sleep 15
 script:
   - py.test --cov-report term-missing --cov TestSheriff
 after_success:
