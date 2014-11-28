@@ -26,7 +26,7 @@ class Test:
         if self._owner is not None:
             dict_of_self['owner'] = self._owner
         if self._last_seen is not None:
-            dict_of_self['last_seen'] = self._last_seen.strftime(Base.time_format)
+            dict_of_self['last_seen'] = self._last_seen
         return dict_of_self
 
     @staticmethod
@@ -39,7 +39,7 @@ class Test:
         if 'owner' in test_dict:
             test._owner = test_dict['owner']
         if 'last_seen' in test_dict:
-            test._last_seen = datetime.datetime.strptime(test_dict['last_seen'], Base.time_format)
+            test._last_seen = test_dict['last_seen']
         return test
 
     def get_all(self, additional_filter=None):

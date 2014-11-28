@@ -1,8 +1,8 @@
 import pymongo
 
-time_format = '%Y-%m-%d %H:%M:%S'
 
 base_prefix = ''
+
 
 class Base:
     _base = None

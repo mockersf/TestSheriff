@@ -20,7 +20,6 @@ class Test_core_status(object):
 
     def test_repr_getter_setter(self):
         from core.Status import Status
-        from core.Base import time_format
         test_id = str(uuid.uuid4())
         test_status = random.choice(['SUCCESS', 'FAILURE'])
         test_type = str(uuid.uuid4())
@@ -30,7 +29,7 @@ class Test_core_status(object):
         status._on = datetime.datetime.now()
         status._last = True
         status._details = {'browser': random.choice(['Firefox', 'Chrome'])}
-        assert status.to_dict()['on'] == status._on.strftime(time_format)
+        assert status.to_dict()['on'] == status._on
         assert status.to_dict()['last'] == status._last
         assert status.to_dict()['details'] == status._details
         status2 = status.from_dict(status.to_dict())
@@ -38,7 +37,7 @@ class Test_core_status(object):
 
     def test_save(self):
         from core.Status import Status
-        from core.Base import Base, time_format
+        from core.Base import Base
         test_id = str(uuid.uuid4())
         test_status = random.choice(['SUCCESS', 'FAILURE'])
         test_type = str(uuid.uuid4())
@@ -52,16 +51,25 @@ class Test_core_status(object):
         assert ast[0]['status'] == test_status
         assert ast[0]['details'] == details
         assert ast[0]['type'] == test_type
-        assert ast[0]['on'] == now.strftime(time_format)
+        assert ast[0]['on'] < now + datetime.timedelta(seconds=1)
         at = Base().get_all('test', {})
         assert len(at) == 1
         assert at[0]['test_id'] == test_id
         assert at[0]['type'] == test_type
-        assert at[0]['last_seen'] == ast[0]['on']
+        assert at[0]['last_seen'] < ast[0]['on'] + datetime.timedelta(seconds=1)
+        test_id = str(uuid.uuid4())
+        test_status = 'TO_RERUN'
+        test_type = str(uuid.uuid4())
+        status = Status(test_id, test_type, test_status)
+        now = datetime.datetime.now()
+        status.save()
+        st = Base().get_one('status', {'test_id': test_id})
+        assert st['status'] == 'CUSTOM'
+        assert st['details']['original_status'] == test_status
 
     def test_update_last(self):
         from core.Status import Status
-        from core.Base import Base, time_format
+        from core.Base import Base
         test_id1 = str(uuid.uuid4())
         test_status1 = random.choice(['SUCCESS', 'FAILURE'])
         test_type = str(uuid.uuid4())
@@ -82,7 +90,7 @@ class Test_core_status(object):
 
     def test_save_and_update(self):
         from core.Status import Status
-        from core.Base import Base, time_format
+        from core.Base import Base
         test_id = str(uuid.uuid4())
         test_status1 = 'FAILURE'
         test_type = str(uuid.uuid4())
@@ -105,7 +113,7 @@ class Test_core_status(object):
 
     def test_get_last(self):
         from core.Status import Status
-        from core.Base import Base, time_format
+        from core.Base import Base
         test_id = str(uuid.uuid4())
         test_status1 = 'FAILURE'
         details = {'browser': random.choice(['Firefox', 'Chrome'])}
@@ -126,4 +134,4 @@ class Test_core_status(object):
         assert sl._test_id == test_id
         at = Base().get_all('test', {})
         assert len(at) == 1
-        assert datetime.datetime.strptime(at[0]['last_seen'], time_format) > status2._on + datetime.timedelta(seconds=1)
+        assert at[0]['last_seen'] > status2._on + datetime.timedelta(seconds=1)

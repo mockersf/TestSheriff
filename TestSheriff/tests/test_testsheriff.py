@@ -32,6 +32,7 @@ class Test_TestSheriff(object):
         self._base_test.drop()
 
     def test_save_1_status(self):
+        import TestSheriff
         my_id = str(uuid.uuid4())
         data = {'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
         json_query = prepare_json_query(data)
@@ -45,14 +46,14 @@ class Test_TestSheriff(object):
         assert res['status']['status'] == 'SUCCESS'
         assert res['status']['details'] == data['details']
         assert res['status']['last'] == True
-        time_diff = datetime.datetime.strptime(res['status']['on'], '%Y-%m-%d %H:%M:%S') - now
+        time_diff = datetime.datetime.strptime(res['status']['on'], TestSheriff.time_format) - now
         seconds = time_diff.days * 86400 + time_diff.seconds
         assert seconds < 2
         assert res['status']['test_id'] == my_id
         ds_after = self._base_status.find_one({'_id': ObjectId(res['status']['_id'])})
         assert ds_after['test_id'] == my_id
         test_after = self._base_test.find_one({'_id': my_id})
-        assert test_after['last_seen'] == res['status']['on']
+        assert test_after['last_seen'].strftime(TestSheriff.time_format) == res['status']['on']
         assert test_after['type'] == data['type']
 
     def test_get_1_status(self):

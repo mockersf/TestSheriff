@@ -2,6 +2,10 @@ import datetime
 
 from . import Base
 from .Test import Test
+from .Aggregate import Aggregate
+
+
+statuses = ['SUCCESS', 'FAILURE', 'UNKNOWN', 'CUSTOM', 'DEPRECATED']
 
 
 class Status:
@@ -12,6 +16,7 @@ class Status:
     _details = None
     _last = None
     _id = None
+
 
     def __init__(self, test_id=None, test_type=None, status=None, on=None,
                  details=None, last=None, base_id=None):
@@ -34,7 +39,7 @@ class Status:
         if self._type is not None:
             dict_of_self['type'] = self._type
         if self._on is not None:
-            dict_of_self['on'] = self._on.strftime(Base.time_format)
+            dict_of_self['on'] = self._on
         if self._status is not None:
             dict_of_self['status'] = self._status
         if self._details is not None:
@@ -53,7 +58,7 @@ class Status:
         if 'type' in status_dict:
             status._type = status_dict['type']
         if 'on' in status_dict:
-            status._on = datetime.datetime.strptime(status_dict['on'], Base.time_format)
+            status._on = status_dict['on']
         if 'status' in status_dict:
             status._status = status_dict['status']
         if 'details' in status_dict:
@@ -67,6 +72,12 @@ class Status:
     def save(self):
         Test(test_id=self._test_id, test_type=self._type).save()
         self._on = datetime.datetime.now()
+        if self._status not in statuses:
+            if self._details is None:
+                self._details = {}
+            if 'original_status' not in self._details:
+                self._details['original_status'] = self._status
+            self._status = 'CUSTOM'
         self._id = str(Base.Base().insert('status', self.to_dict()))
 
     def get_last(self):

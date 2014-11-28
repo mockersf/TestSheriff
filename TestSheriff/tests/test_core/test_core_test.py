@@ -18,7 +18,6 @@ class Test_core_test(object):
 
     def test_repr_getter_setter(self):
         from core.Test import Test
-        from core.Base import time_format
         test_id = str(uuid.uuid4())
         owner = str(uuid.uuid4())
         test_type = str(uuid.uuid4())
@@ -26,13 +25,13 @@ class Test_core_test(object):
         assert '{0}'.format(test) == '<Test {0} ({1}) by {2}>'.format(test_id, test_type, owner)
         assert test.to_dict() == {'test_id': test_id, 'owner': owner, 'type': test_type}
         test._last_seen = datetime.datetime.now()
-        assert test.to_dict()['last_seen'] == test._last_seen.strftime(time_format)
+        assert test.to_dict()['last_seen'] == test._last_seen
         test2 = test.from_dict(test.to_dict())
         assert test2.to_dict() == test.to_dict()
 
     def test_save(self):
         from core.Test import Test
-        from core.Base import Base, time_format
+        from core.Base import Base
         test_id = str(uuid.uuid4())
         owner = str(uuid.uuid4())
         test_type = str(uuid.uuid4())
@@ -46,7 +45,7 @@ class Test_core_test(object):
         assert at[0]['owner'] == owner
         assert at[0]['test_id'] == test_id
         assert at[0]['type'] == test_type
-        assert at[0]['last_seen'] == now.strftime(time_format)
+        assert at[0]['last_seen'] < now + datetime.timedelta(seconds=1)
 
     def test_get_all(self):
         from core.Test import Test
