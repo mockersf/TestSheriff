@@ -4,6 +4,7 @@ from . import Base
 
 
 class Test:
+    collection = 'test'
     _test_id = None
     _owner = None
     _type = None
@@ -46,7 +47,7 @@ class Test:
         query_filter = self.to_dict()
         if additional_filter is not None:
             query_filter.update(additional_filter)
-        return [Test.from_dict(bt) for bt in Base.Base().get_all('test', query_filter)]
+        return [Test.from_dict(bt) for bt in Base.Base().get_all(self.collection, query_filter)]
 
     def get_all_ownerless(self):
         additional_filter = {'owner': None}
@@ -54,9 +55,9 @@ class Test:
 
     def get_one(self):
         query_filter = self.to_dict()
-        res = Base.Base().get_one('test', query_filter)
+        res = Base.Base().get_one(self.collection, query_filter)
         return Test.from_dict(res) if res is not None else None
 
     def save(self):
         self._last_seen = datetime.datetime.now()
-        return Base.Base().upsert_by_id('test', self._test_id, self.to_dict())
+        return Base.Base().upsert_by_id(self.collection, self._test_id, self.to_dict())

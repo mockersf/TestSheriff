@@ -9,6 +9,7 @@ statuses = ['SUCCESS', 'FAILURE', 'UNKNOWN', 'CUSTOM', 'DEPRECATED']
 
 
 class Status:
+    collection = 'status'
     _test_id = None
     _type = None
     _on = None
@@ -78,17 +79,17 @@ class Status:
             if 'original_status' not in self._details:
                 self._details['original_status'] = self._status
             self._status = 'CUSTOM'
-        self._id = str(Base.Base().insert('status', self.to_dict()))
+        self._id = str(Base.Base().insert(self.collection, self.to_dict()))
 
     def get_last(self):
+        Test(test_id=self._test_id).save()
         query_filter = self.to_dict()
         query_filter['last'] = True
-        Test(test_id=self._test_id).save()
-        res = Base.Base().get_one('status', query_filter)
+        res = Base.Base().get_one(self.collection, query_filter)
         return Status.from_dict(res) if res is not None else None
 
     def update_last(self):
-        Base.Base().update('status', {'test_id': self._test_id, 'last': True}, {'last': False})
+        Base.Base().update(self.collection, {'test_id': self._test_id, 'last': True}, {'last': False})
 
     def save_and_update(self):
         self.update_last()

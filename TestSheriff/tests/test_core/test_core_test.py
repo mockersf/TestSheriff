@@ -14,7 +14,8 @@ class Test_core_test(object):
 
     def teardown_method(self, method):
         from core import Base
-        Base.Base().get_base()['test'].drop()
+        from core.Test import Test
+        Base.Base().get_base()[Test.collection].drop()
 
     def test_repr_getter_setter(self):
         from core.Test import Test
@@ -39,7 +40,7 @@ class Test_core_test(object):
         now = datetime.datetime.now()
         res = test.save()
         assert res
-        at = Base().get_all('test', {})
+        at = Base().get_all(Test.collection, {})
         assert len(at) == 1
         assert at[0]['_id'] == test_id
         assert at[0]['owner'] == owner

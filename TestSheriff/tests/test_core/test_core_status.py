@@ -15,8 +15,10 @@ class Test_core_status(object):
 
     def teardown_method(self, method):
         from core import Base
-        Base.Base().get_base()['status'].drop()
-        Base.Base().get_base()['test'].drop()
+        from core.Status import Status
+        from core.Test import Test
+        Base.Base().get_base()[Status.collection].drop()
+        Base.Base().get_base()[Test.collection].drop()
 
     def test_repr_getter_setter(self):
         from core.Status import Status
@@ -37,6 +39,7 @@ class Test_core_status(object):
 
     def test_save(self):
         from core.Status import Status
+        from core.Test import Test
         from core.Base import Base
         test_id = str(uuid.uuid4())
         test_status = random.choice(['SUCCESS', 'FAILURE'])
@@ -45,14 +48,14 @@ class Test_core_status(object):
         status = Status(test_id, test_type, test_status, details=details)
         now = datetime.datetime.now()
         status.save()
-        ast = Base().get_all('status', {})
+        ast = Base().get_all(Status.collection, {})
         assert len(ast) == 1
         assert ast[0]['test_id'] == test_id
         assert ast[0]['status'] == test_status
         assert ast[0]['details'] == details
         assert ast[0]['type'] == test_type
         assert ast[0]['on'] < now + datetime.timedelta(seconds=1)
-        at = Base().get_all('test', {})
+        at = Base().get_all(Test.collection, {})
         assert len(at) == 1
         assert at[0]['test_id'] == test_id
         assert at[0]['type'] == test_type
@@ -63,7 +66,7 @@ class Test_core_status(object):
         status = Status(test_id, test_type, test_status)
         now = datetime.datetime.now()
         status.save()
-        st = Base().get_one('status', {'test_id': test_id})
+        st = Base().get_one(Status.collection, {'test_id': test_id})
         assert st['status'] == 'CUSTOM'
         assert st['details']['original_status'] == test_status
 
@@ -80,12 +83,12 @@ class Test_core_status(object):
         test_status2 = random.choice(['SUCCESS', 'FAILURE'])
         status2 = Status(test_id2, test_type, test_status2, details=details, last=True)
         status2.save()
-        st = Base().get_one('status', {})
+        st = Base().get_one(Status.collection, {})
         assert st['last'] == True
         status2.update_last()
-        ast = Base().get_all('status', {'last': True})
+        ast = Base().get_all(Status.collection, {'last': True})
         assert len(ast) == 1
-        st = Base().get_one('status', {'test_id': test_id2})
+        st = Base().get_one(Status.collection, {'test_id': test_id2})
         assert st['last'] == False
 
     def test_save_and_update(self):
@@ -97,22 +100,23 @@ class Test_core_status(object):
         details = {'browser': random.choice(['Firefox', 'Chrome'])}
         status1 = Status(test_id, test_type, test_status1, details=details)
         status1.save_and_update()
-        st = Base().get_one('status', {})
+        st = Base().get_one(Status.collection, {})
         assert st['last'] == True
         test_status2 = 'SUCCESS'
         status2 = Status(test_id, test_type, test_status2, details=details)
         status2.save_and_update()
-        ast = Base().get_all('status', {})
+        ast = Base().get_all(Status.collection, {})
         assert len(ast) == 2
-        ast = Base().get_all('status', {'last': False})
+        ast = Base().get_all(Status.collection, {'last': False})
         assert len(ast) == 1
         assert ast[0]['status'] == 'FAILURE'
-        ast = Base().get_all('status', {'last': True})
+        ast = Base().get_all(Status.collection, {'last': True})
         assert len(ast) == 1
         assert ast[0]['status'] == 'SUCCESS'
 
     def test_get_last(self):
         from core.Status import Status
+        from core.Test import Test
         from core.Base import Base
         test_id = str(uuid.uuid4())
         test_status1 = 'FAILURE'
@@ -120,18 +124,18 @@ class Test_core_status(object):
         test_type = str(uuid.uuid4())
         status1 = Status(test_id, test_type, test_status1, details=details)
         status1.save_and_update()
-        at = Base().get_all('test', {})
+        at = Base().get_all(Test.collection, {})
         assert len(at) == 1
         assert at[0]['test_id'] == test_id
         test_status2 = 'SUCCESS'
         status2 = Status(test_id, test_type, test_status2, details=details)
         status2.save_and_update()
-        at = Base().get_all('test', {})
+        at = Base().get_all(Test.collection, {})
         assert len(at) == 1
         time.sleep(3)
         sl = Status(test_id).get_last()
         assert sl._status == 'SUCCESS'
         assert sl._test_id == test_id
-        at = Base().get_all('test', {})
+        at = Base().get_all(Test.collection, {})
         assert len(at) == 1
         assert at[0]['last_seen'] > status2._on + datetime.timedelta(seconds=1)

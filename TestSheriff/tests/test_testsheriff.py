@@ -23,9 +23,11 @@ class Test_TestSheriff(object):
     def setup_method(self, method):
         import TestSheriff
         from core import Base
+        from core.Test import Test
+        from core.Status import Status
         self.app = TestSheriff.app.test_client()
-        self._base_status = base()['status']
-        self._base_test = base()['test']
+        self._base_status = base()[Status.collection]
+        self._base_test = base()[Test.collection]
 
     def teardown_method(self, method):
         self._base_status.drop()
