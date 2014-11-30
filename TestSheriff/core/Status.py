@@ -2,7 +2,6 @@ import datetime
 
 from . import Base
 from .Test import Test
-from .Aggregate import Aggregate
 
 
 statuses = ['SUCCESS', 'FAILURE', 'UNKNOWN', 'CUSTOM', 'DEPRECATED']
