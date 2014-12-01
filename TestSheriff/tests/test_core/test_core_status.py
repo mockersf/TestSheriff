@@ -17,8 +17,11 @@ class Test_core_status(object):
         from core import Base
         from core.Status import Status
         from core.Test import Test
+        from core.Index import Index
+        from core.TestType import TestType
         Base.Base().get_base()[Status.collection].drop()
         Base.Base().get_base()[Test.collection].drop()
+        Base.Base().get_base()[TestType.collection].drop()
 
     def test_repr_getter_setter(self):
         from core.Status import Status
@@ -40,6 +43,8 @@ class Test_core_status(object):
     def test_save(self):
         from core.Status import Status
         from core.Test import Test
+        from core.Index import Index
+        from core.TestType import TestType
         from core.Base import Base
         test_id = str(uuid.uuid4())
         test_status = random.choice(['SUCCESS', 'FAILURE'])
@@ -60,6 +65,13 @@ class Test_core_status(object):
         assert at[0]['test_id'] == test_id
         assert at[0]['type'] == test_type
         assert at[0]['last_seen'] < ast[0]['on'] + datetime.timedelta(seconds=1)
+        st = Base().get_one(Index.collection, {})
+        assert st['type'] == test_type
+        assert st['field'] == 'browser'
+        assert st['values'] == [details['browser']]
+        st = Base().get_one(TestType.collection, {})
+        assert st['type'] == test_type
+        assert st['doc_fields'] == ['browser']
         test_id = str(uuid.uuid4())
         test_status = 'TO_RERUN'
         test_type = str(uuid.uuid4())
@@ -69,7 +81,7 @@ class Test_core_status(object):
         st = Base().get_one(Status.collection, {'test_id': test_id})
         assert st['status'] == 'CUSTOM'
         assert st['details']['original_status'] == test_status
-
+        
     def test_update_last(self):
         from core.Status import Status
         from core.Base import Base

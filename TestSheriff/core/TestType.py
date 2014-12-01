@@ -35,7 +35,9 @@ class TestType:
     @staticmethod
     def from_status(status):
         test_type = status._type
-        doc_fields = [key for key in status._details]
+        doc_fields = None
+        if status._details is not None:
+            doc_fields = [key for key in status._details]
         return TestType(test_type, doc_fields)
 
     def save(self):

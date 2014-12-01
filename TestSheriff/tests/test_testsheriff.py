@@ -32,6 +32,10 @@ class Test_TestSheriff(object):
     def teardown_method(self, method):
         self._base_status.drop()
         self._base_test.drop()
+        from core import Base
+        from core.Index import Index
+        Base.Base().get_base()[Index.collection].drop()
+
 
     def test_save_1_status(self):
         import TestSheriff

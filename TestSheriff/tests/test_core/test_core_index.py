@@ -12,6 +12,8 @@ class Test_core_index(object):
     def setup_method(self, method):
         from core import Base
         Base.base_prefix = 'test'
+        from core.Index import Index
+        Base.Base().get_base()[Index.collection].drop()
 
     def teardown_method(self, method):
         from core import Base
@@ -48,7 +50,6 @@ class Test_core_index(object):
         index2 = index2.get()
         assert index2._values == values
 
-
     def test_index(self):
         from core.Index import Index
         from core.Status import Status
@@ -56,18 +57,52 @@ class Test_core_index(object):
         test_id = str(uuid.uuid4())
         test_status = random.choice(['SUCCESS', 'FAILURE'])
         test_type = str(uuid.uuid4())
-        field = 'browser'
-        details1 = {field: 'Firefox'}
+        field1 = 'browser'
+        details1 = {field1: 'Firefox'}
         status1 = Status(test_id, test_type, test_status, details=details1)
-        details2 = {field: 'Chrome'}
+        details2 = {field1: 'Chrome'}
         status2 = Status(test_id, test_type, test_status, details=details2)
+        field2 = 'environment'
+        details3 = {field2: 'master'}
+        status3 = Status(test_id, test_type, test_status, details=details3)
         Index.index(status1)
         ast = Base().get_all(Index.collection, {})
         assert len(ast) == 1
         assert ast[0]['type'] == test_type
-        assert ast[0]['field'] == field
+        assert ast[0]['field'] == field1
         assert ast[0]['values'] == ['Firefox']
         Index.index(status2)
         ast = Base().get_all(Index.collection, {})
         assert len(ast) == 1
         assert sorted(ast[0]['values']) == sorted(['Chrome', 'Firefox'])
+        Index.index(status3)
+        ast = Base().get_all(Index.collection, {})
+        assert len(ast) == 2
+        ast = Base().get_all(Index.collection, {'field': 'browser'})
+        assert len(ast) == 1
+        assert sorted(ast[0]['values']) == sorted(['Chrome', 'Firefox'])
+        ast = Base().get_all(Index.collection, {'field': 'environment'})
+        assert len(ast) == 1
+        assert ast[0]['values'] == ['master']
+
+    def test_index_large_status(self):
+        from core.Index import Index
+        from core.Status import Status
+        from core.Base import Base
+        test_id = str(uuid.uuid4())
+        test_status = random.choice(['SUCCESS', 'FAILURE'])
+        test_type = str(uuid.uuid4())
+        field1 = 'browser'
+        field2 = 'environment'
+        details1 = {field1: 'Firefox', field2: 'master'}
+        status1 = Status(test_id, test_type, test_status, details=details1)
+        Index.index(status1)
+        details2 = {field1: 'Chrome', field2: 'master'}
+        status2 = Status(test_id, test_type, test_status, details=details2)
+        Index.index(status2)
+        ast = Base().get_all(Index.collection, {'field': 'browser'})
+        assert len(ast) == 1
+        assert sorted(ast[0]['values']) == sorted(['Chrome', 'Firefox'])
+        ast = Base().get_all(Index.collection, {'field': 'environment'})
+        assert len(ast) == 1
+        assert ast[0]['values'] == ['master']

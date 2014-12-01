@@ -5,7 +5,7 @@ from flask import Flask, jsonify, request
 from flask.json import JSONEncoder
 
 
-class Test_TestSheriff(object):
+class Test_FlaskTools(object):
     def setup_method(self, method):
         pass
 
@@ -31,12 +31,14 @@ class Test_TestSheriff(object):
                     self._current = 0
                 def __iter__(self):
                     return self
-                def next(self):
+                def __next__(self):
                     if self._current > self._value:
                         raise StopIteration
                     else:
                         self._current += 1
                         return self._current - 1
+                def next(self):
+                    return self.__next__()
             return jsonify(result=Counter(5))
         @app.route('/test_json_error')
         def json_error():

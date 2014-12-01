@@ -2,6 +2,8 @@ import datetime
 
 from . import Base
 from .Test import Test
+from .TestType import TestType
+from .Index import Index
 
 
 statuses = ['SUCCESS', 'FAILURE', 'UNKNOWN', 'CUSTOM', 'DEPRECATED']
@@ -71,6 +73,8 @@ class Status:
 
     def save(self):
         Test(test_id=self._test_id, test_type=self._type).save()
+        TestType.from_status(self).save()
+        Index.index(self)
         self._on = datetime.datetime.now()
         if self._status not in statuses:
             if self._details is None:
