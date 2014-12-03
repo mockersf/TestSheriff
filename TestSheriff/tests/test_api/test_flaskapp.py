@@ -15,7 +15,7 @@ class Test_api(object):
     def test_flask_app(self):
         from api import api
         my_app = api.app
-        assert my_app.name == 'Test Sheriff'
+        assert my_app.name == 'TestSheriff_flask'
         now = datetime.datetime.now()
         @my_app.route('/test_json_datetime')
         def json_datetime():
@@ -27,7 +27,7 @@ class Test_api(object):
 
     def test_jsonencoder(self):
         from api import api
-        app = Flask('test_app')
+        app = Flask(__name__)
         app.json_encoder = api.CustomJSONEncoder
         @app.route('/test_json_basic')
         def json_basic():

@@ -1,6 +1,6 @@
 from flask import jsonify, request
 
-from flask_app import app
+from TestSheriff_flask import app
 
 from core.Test import Test
 from core.Status import Status

@@ -20,8 +20,8 @@ class CustomJSONEncoder(JSONEncoder):
 
 
 
-from flask_app import app
+from TestSheriff_flask import app
 
 app.json_encoder = CustomJSONEncoder
 
-import status
+from . import status

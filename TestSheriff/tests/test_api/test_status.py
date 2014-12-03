@@ -43,7 +43,7 @@ class Test_TestSheriff(object):
         Base.Base().get_base()[TestType.collection].drop()
 
     def test_save_1_status(self):
-        import flask_app
+        import TestSheriff_flask
         from api import api
         my_id = str(uuid.uuid4())
         data = {'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}

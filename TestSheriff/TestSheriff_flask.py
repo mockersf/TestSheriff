@@ -1,4 +1,4 @@
 from flask import Flask
 
 
-app = Flask('Test Sheriff')
+app = Flask(__name__)
