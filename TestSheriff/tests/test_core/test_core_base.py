@@ -55,21 +55,30 @@ class Test_core_base(object):
         assert ob['p'] == p
 
     def test_get_all(self):
+        from core import Base
         object_id1 = str(uuid.uuid4())
         object_id2 = str(uuid.uuid4())
         object_id3 = str(uuid.uuid4())
         p1 = str(uuid.uuid4())
         p2 = str(uuid.uuid4())
-        res = self._base.upsert_by_id(self._test_collection_name, object_id1, {'p': p1})
+        res = self._base.upsert_by_id(self._test_collection_name, object_id1, {'p': p1, 'a': 1})
         assert res
-        res = self._base.upsert_by_id(self._test_collection_name, object_id2, {'p': p1})
+        res = self._base.upsert_by_id(self._test_collection_name, object_id2, {'p': p1, 'a': 2})
         assert res
-        res = self._base.upsert_by_id(self._test_collection_name, object_id3, {'p': p2})
+        res = self._base.upsert_by_id(self._test_collection_name, object_id3, {'p': p2, 'a': 3})
         assert res
         aob = self._base.get_all(self._test_collection_name, {'p': p1})
         assert len(aob) == 2
         assert object_id1 in [ob['_id'] for ob in aob]
         assert object_id2 in [ob['_id'] for ob in aob]
+        aob = self._base.get_all(self._test_collection_name, {'p': p1}, [('a', Base.asc)])
+        assert len(aob) == 2
+        assert aob[0]['_id'] == object_id1
+        assert aob[1]['_id'] == object_id2
+        aob = self._base.get_all(self._test_collection_name, {'p': p1}, [('a', Base.desc)])
+        assert len(aob) == 2
+        assert aob[0]['_id'] == object_id2
+        assert aob[1]['_id'] == object_id1
 
     def test_insert(self):
         object_id = str(uuid.uuid4())

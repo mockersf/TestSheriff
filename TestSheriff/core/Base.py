@@ -2,7 +2,8 @@ import pymongo
 
 
 base_prefix = ''
-
+asc = pymongo.ASCENDING
+desc = pymongo.DESCENDING
 
 class Base:
     _base = None
@@ -17,8 +18,11 @@ class Base:
     def get_one(self, collection, query_filter={}):
         return self._base[collection].find_one(query_filter)
 
-    def get_all(self, collection, query_filter={}):
-        return [item for item in self._base[collection].find(query_filter)]
+    def get_all(self, collection, query_filter={}, sort=None):
+        items = self._base[collection].find(query_filter)
+        if sort is not None:
+            items.sort(sort)
+        return [item for item in items]
 
     def upsert_by_id(self, collection, object_id, object_to_update):
         res = self._base[collection].update({'_id': object_id}, {'$set': object_to_update}, upsert=True)
