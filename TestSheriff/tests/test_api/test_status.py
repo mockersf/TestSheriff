@@ -1,3 +1,5 @@
+import os, sys
+
 import json
 import pymongo
 import datetime
@@ -6,11 +8,9 @@ from bson.objectid import ObjectId
 from random import randint
 
 
-base_prefix = ""
-def base():
-    connection = pymongo.MongoClient('localhost', 27017)
-    base_status = connection[base_prefix + 'TestSheriff']
-    return base_status
+def setup_module(module):
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
 
 def prepare_json_query(data):
     headers = [('Content-Type', 'application/json')]
@@ -19,26 +19,32 @@ def prepare_json_query(data):
     headers.append(('Content-Length', json_data_length))
     return {'headers': headers, 'json': json_data}
 
+
 class Test_TestSheriff(object):
     def setup_method(self, method):
-        import TestSheriff
         from core import Base
-        from core.Test import Test
+        Base.base_prefix = 'test'
+        import api.status
+        self.app = api.status.app.test_client()
         from core.Status import Status
-        self.app = TestSheriff.app.test_client()
-        self._base_status = base()[Status.collection]
-        self._base_test = base()[Test.collection]
+        self._base_status = Base.Base().get_base()[Status.collection]
+        from core.Test import Test
+        self._base_test = Base.Base().get_base()[Test.collection]
 
     def teardown_method(self, method):
-        self._base_status.drop()
-        self._base_test.drop()
         from core import Base
         from core.Index import Index
+        from core.Test import Test
+        from core.Status import Status
+        from core.TestType import TestType
         Base.Base().get_base()[Index.collection].drop()
-
+        Base.Base().get_base()[Test.collection].drop()
+        Base.Base().get_base()[Status.collection].drop()
+        Base.Base().get_base()[TestType.collection].drop()
 
     def test_save_1_status(self):
-        import TestSheriff
+        import flask_app
+        from api import api
         my_id = str(uuid.uuid4())
         data = {'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
         json_query = prepare_json_query(data)
@@ -52,14 +58,14 @@ class Test_TestSheriff(object):
         assert res['status']['status'] == 'SUCCESS'
         assert res['status']['details'] == data['details']
         assert res['status']['last'] == True
-        time_diff = datetime.datetime.strptime(res['status']['on'], TestSheriff.time_format) - now
+        time_diff = datetime.datetime.strptime(res['status']['on'], api.time_format) - now
         seconds = time_diff.days * 86400 + time_diff.seconds
         assert seconds < 2
         assert res['status']['test_id'] == my_id
         ds_after = self._base_status.find_one({'_id': ObjectId(res['status']['_id'])})
         assert ds_after['test_id'] == my_id
         test_after = self._base_test.find_one({'_id': my_id})
-        assert test_after['last_seen'].strftime(TestSheriff.time_format) == res['status']['on']
+        assert test_after['last_seen'].strftime(api.time_format) == res['status']['on']
         assert test_after['type'] == data['type']
 
     def test_get_1_status(self):

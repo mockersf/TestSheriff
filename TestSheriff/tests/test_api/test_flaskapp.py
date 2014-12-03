@@ -5,17 +5,30 @@ from flask import Flask, jsonify, request
 from flask.json import JSONEncoder
 
 
-class Test_FlaskTools(object):
+class Test_api(object):
     def setup_method(self, method):
         pass
 
     def teardown_method(self, method):
         pass
 
+    def test_flask_app(self):
+        from api import api
+        my_app = api.app
+        assert my_app.name == 'Test Sheriff'
+        now = datetime.datetime.now()
+        @my_app.route('/test_json_datetime')
+        def json_datetime():
+            return jsonify(result=now)
+        rv = my_app.test_client().get('/test_json_datetime')
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res == {'result': now.strftime(api.time_format)}
+
     def test_jsonencoder(self):
-        import TestSheriff
+        from api import api
         app = Flask('test_app')
-        app.json_encoder = TestSheriff.CustomJSONEncoder
+        app.json_encoder = api.CustomJSONEncoder
         @app.route('/test_json_basic')
         def json_basic():
             return jsonify(result='test')
@@ -54,11 +67,10 @@ class Test_FlaskTools(object):
         rv = test_app.get('/test_json_datetime')
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
-        assert res == {'result': now.strftime(TestSheriff.time_format)}
+        assert res == {'result': now.strftime(api.time_format)}
         rv = test_app.get('/test_json_iter')
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
         assert res == {'result': [0, 1, 2, 3, 4, 5]}
         rv = test_app.get('/test_json_error')
         assert rv.status_code == 500
-
