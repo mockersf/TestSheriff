@@ -41,7 +41,7 @@ class Status:
         if self._type is not None:
             dict_of_self['type'] = self._type
         if self._on is not None:
-            dict_of_self['on'] = self._on
+            dict_of_self['on'] = self._on.replace(microsecond=0)
         if self._status is not None:
             dict_of_self['status'] = self._status
         if self._details is not None:
@@ -70,6 +70,10 @@ class Status:
         if '_id' in status_dict:
             status._id = str(status_dict['_id'])
         return status
+
+    @staticmethod
+    def list(query_filter={}, sort=None):
+        return [Status.from_dict(obj) for obj in Base.Base().get_all(Status.collection, query_filter, sort)]
 
     def save(self):
         Test(test_id=self._test_id, test_type=self._type).save()
