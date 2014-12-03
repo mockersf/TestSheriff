@@ -131,3 +131,14 @@ class Test_TestSheriff(object):
         res = json.loads(rv.data.decode('utf-8'))
         assert res['status']['_id'] == str(ads_after1[0]['_id'])
         assert res['status']['details']['browser'] == data1['details']['browser']
+
+    def test_list(self):
+        my_id1 = str(uuid.uuid4())
+        data1 = {'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
+        json_query = prepare_json_query(data1)
+        rv = self.app.put('/status/{0}'.format(my_id1), headers=json_query['headers'], data=json_query['json'])
+        rv = self.app.get('/status')
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert len(res['statuses']) == 1
+        assert res['statuses'][0]['details'] == data1['details']

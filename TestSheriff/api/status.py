@@ -4,7 +4,12 @@ from TestSheriff_flask import app
 
 from core.Test import Test
 from core.Status import Status
+from core import Base
 
+@app.route('/status', methods=['GET'])
+def list_status():
+    statuses = Status.list(sort=[('on', Base.desc)])
+    return jsonify(result='Success', statuses=[status.to_dict() for status in statuses])
 
 @app.route('/status/<test_id>', methods=['PUT', 'POST', 'GET'])
 def status(test_id):
