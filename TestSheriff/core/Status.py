@@ -11,13 +11,13 @@ statuses = ['SUCCESS', 'FAILURE', 'UNKNOWN', 'CUSTOM', 'DEPRECATED']
 
 class Status:
     collection = 'status'
-    _test_id = None
-    _type = None
-    _on = None
-    _status = None
-    _details = None
-    _last = None
-    _id = None
+    _test_id = 'test_id'
+    _type = 'type'
+    _on = 'on'
+    _status = 'status'
+    _details = 'details'
+    _last = 'last'
+    _id = '_id'
 
 
     def __init__(self, test_id=None, test_type=None, status=None, on=None,
@@ -37,38 +37,38 @@ class Status:
     def to_dict(self):
         dict_of_self = {}
         if self._test_id is not None:
-            dict_of_self['test_id'] = self._test_id
+            dict_of_self[Status._test_id] = self._test_id
         if self._type is not None:
-            dict_of_self['type'] = self._type
+            dict_of_self[Status._type] = self._type
         if self._on is not None:
-            dict_of_self['on'] = self._on.replace(microsecond=0)
+            dict_of_self[Status._on] = self._on.replace(microsecond=0)
         if self._status is not None:
-            dict_of_self['status'] = self._status
+            dict_of_self[Status._status] = self._status
         if self._details is not None:
-            dict_of_self['details'] = self._details
+            dict_of_self[Status._details] = self._details
         if self._last is not None:
-            dict_of_self['last'] = self._last
+            dict_of_self[Status._last] = self._last
         if self._id is not None:
-            dict_of_self['_id'] = self._id
+            dict_of_self[Status._id] = self._id
         return dict_of_self
 
     @staticmethod
     def from_dict(status_dict):
         status = Status()
         if 'test_id' in status_dict:
-            status._test_id = status_dict['test_id']
+            status._test_id = status_dict[Status._test_id]
         if 'type' in status_dict:
-            status._type = status_dict['type']
+            status._type = status_dict[Status._type]
         if 'on' in status_dict:
-            status._on = status_dict['on']
+            status._on = status_dict[Status._on]
         if 'status' in status_dict:
-            status._status = status_dict['status']
+            status._status = status_dict[Status._status]
         if 'details' in status_dict:
-            status._details = status_dict['details']
+            status._details = status_dict[Status._details]
         if 'last' in status_dict:
-            status._last = status_dict['last']
+            status._last = status_dict[Status._last]
         if '_id' in status_dict:
-            status._id = str(status_dict['_id'])
+            status._id = str(status_dict[Status._id])
         return status
 
     @staticmethod
