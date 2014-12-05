@@ -1,5 +1,5 @@
 import pymongo
-
+import bson
 
 base_prefix = ''
 asc = pymongo.ASCENDING
@@ -16,6 +16,8 @@ class Base:
         return self._base
 
     def get_one(self, collection, query_filter={}):
+        if '_id' in query_filter and bson.ObjectId.is_valid(query_filter['_id']):
+            query_filter['_id'] = bson.ObjectId(query_filter['_id'])
         return self._base[collection].find_one(query_filter)
 
     def get_all(self, collection, query_filter={}, sort=None):
