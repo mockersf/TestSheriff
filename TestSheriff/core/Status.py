@@ -97,7 +97,6 @@ class Status:
 
     def get(self):
         query_filter = self.to_dict()
-        print(query_filter)
         res = Base.Base().get_one(self.collection, query_filter)
         return Status.from_dict(res) if res is not None else None
 
