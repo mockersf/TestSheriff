@@ -65,7 +65,9 @@ class Test_TestSheriff(object):
         ds_after = self._base_status.find_one({'_id': ObjectId(res['status']['_id'])})
         assert ds_after['test_id'] == my_id
         test_after = self._base_test.find_one({'_id': my_id})
-        assert test_after['last_seen'].strftime(api.time_format) == res['status']['on']
+        time_diff = datetime.datetime.strptime(res['status']['on'], api.time_format) - test_after['last_seen']
+        seconds = time_diff.days * 86400 + time_diff.seconds
+        assert seconds < 3
         assert test_after['type'] == data['type']
 
     def test_get_1_status(self):
