@@ -132,13 +132,29 @@ class Test_TestSheriff(object):
         assert res['status']['_id'] == str(ads_after1[0]['_id'])
         assert res['status']['details']['browser'] == data1['details']['browser']
 
+    def test_get(self):
+        my_id1 = str(uuid.uuid4())
+        data1 = {'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
+        json_query = prepare_json_query(data1)
+        rv = self.app.put('/status/{0}'.format(my_id1), headers=json_query['headers'], data=json_query['json'])
+        res1 = json.loads(rv.data.decode('utf-8'))
+        rv = self.app.get('/statuses/{0}'.format(res1['status']['_id']))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        assert res['status']['details'] == data1['details']
+        assert res['status']['status'] == 'SUCCESS'
+        assert res['status']['_links'] == {'self': {'href': '/statuses/{0}'.format(res1['status']['_id'])}}
+
     def test_list(self):
         my_id1 = str(uuid.uuid4())
         data1 = {'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
         json_query = prepare_json_query(data1)
         rv = self.app.put('/status/{0}'.format(my_id1), headers=json_query['headers'], data=json_query['json'])
-        rv = self.app.get('/status')
+        res1 = json.loads(rv.data.decode('utf-8'))
+        rv = self.app.get('/statuses/')
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
         assert len(res['statuses']) == 1
         assert res['statuses'][0]['details'] == data1['details']
+        assert res['statuses'][0]['_links'] == {'self': {'href': '/statuses/{0}'.format(res1['status']['_id'])}}

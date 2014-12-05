@@ -1,4 +1,4 @@
-from flask import jsonify, request
+from flask import jsonify, request, url_for
 
 from TestSheriff_flask import app
 
@@ -6,10 +6,28 @@ from core.Test import Test
 from core.Status import Status
 from core import Base
 
-@app.route('/status', methods=['GET'])
+
+def add_url_for_status(status):
+    url = url_for('status_details', status_id=status['_id'])
+    status['_links'] = {'self': {'href': url}}
+    return status
+
+
+@app.route('/statuses/', methods=['GET'])
 def list_status():
-    statuses = Status.list(sort=[('on', Base.desc)])
-    return jsonify(result='Success', statuses=[status.to_dict() for status in statuses])
+    statuses = Status.list(sort=[(Status._on, Base.desc)])
+    statuses = [status.to_dict() for status in statuses]
+    statuses = [add_url_for_status(status) for status in statuses]
+    return jsonify(result='Success', statuses=statuses)
+
+
+@app.route('/statuses/<status_id>', methods=['GET'])
+def status_details(status_id):
+    status = Status(base_id=status_id).get()
+    status = status.to_dict()
+    status = add_url_for_status(status)
+    return jsonify(result='Success', status=status)
+
 
 @app.route('/status/<test_id>', methods=['PUT', 'POST', 'GET'])
 def status(test_id):
@@ -17,6 +35,7 @@ def status(test_id):
         return save_status(test_id)
     else:
         return get_status(test_id)
+
 
 def save_status(test_id):
     data = request.get_json()
