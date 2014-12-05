@@ -95,6 +95,12 @@ class Status:
         res = Base.Base().get_one(self.collection, query_filter)
         return Status.from_dict(res) if res is not None else None
 
+    def get(self):
+        query_filter = self.to_dict()
+        print(query_filter)
+        res = Base.Base().get_one(self.collection, query_filter)
+        return Status.from_dict(res) if res is not None else None
+
     def update_last(self):
         Base.Base().update(self.collection, {'test_id': self._test_id, 'last': True}, {'last': False})
 
