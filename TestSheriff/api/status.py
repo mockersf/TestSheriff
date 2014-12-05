@@ -1,4 +1,4 @@
-from flask import jsonify, request, url_for
+from flask import jsonify, request, url_for, Blueprint, abort
 
 from TestSheriff_flask import app
 
@@ -7,25 +7,27 @@ from core.Status import Status
 from core import Base
 
 
-def add_url_for_status(status):
-    url = url_for('status_details', status_id=status['_id'])
-    status['_links'] = {'self': {'href': url}}
-    return status
+status_bp = Blueprint('status_v1', __name__)
+
+def prep_status(status):
+    dict = status.to_dict()
+    dict['_links'] = {'self': {'href': url_for('status_v1.details', status_id=status._id)}}
+    return dict
 
 
-@app.route('/statuses/', methods=['GET'])
-def list_status():
+@status_bp.route('/', methods=['GET'])
+def list():
     statuses = Status.list(sort=[(Status._on, Base.desc)])
-    statuses = [status.to_dict() for status in statuses]
-    statuses = [add_url_for_status(status) for status in statuses]
+    statuses = [prep_status(status) for status in statuses]
     return jsonify(result='Success', statuses=statuses)
 
 
-@app.route('/statuses/<status_id>', methods=['GET'])
-def status_details(status_id):
+@status_bp.route('/<status_id>', methods=['GET'])
+def details(status_id):
     status = Status(base_id=status_id).get()
-    status = status.to_dict()
-    status = add_url_for_status(status)
+    if status is None:
+        abort(404)
+    status = prep_status(status)
     return jsonify(result='Success', status=status)
 
 

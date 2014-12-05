@@ -7,6 +7,7 @@ import uuid
 from bson.objectid import ObjectId
 from random import randint
 
+from flask import Flask, url_for
 
 def setup_module(module):
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
@@ -30,6 +31,10 @@ class Test_TestSheriff(object):
         self._base_status = Base.Base().get_base()[Status.collection]
         from core.Test import Test
         self._base_test = Base.Base().get_base()[Test.collection]
+        app = Flask(__name__)
+        import api.status
+        app.register_blueprint(api.status.status_bp, url_prefix='/statuses')
+        self.app_status = app.test_client()
 
     def teardown_method(self, method):
         from core import Base
@@ -140,7 +145,9 @@ class Test_TestSheriff(object):
         json_query = prepare_json_query(data1)
         rv = self.app.put('/status/{0}'.format(my_id1), headers=json_query['headers'], data=json_query['json'])
         res1 = json.loads(rv.data.decode('utf-8'))
-        rv = self.app.get('/statuses/{0}'.format(res1['status']['_id']))
+        rv = self.app_status.get('/statuses/{0}'.format(uuid.uuid4()))
+        assert rv.status_code == 404
+        rv = self.app_status.get('/statuses/{0}'.format(res1['status']['_id']))
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
         assert res['result'] == 'Success'
@@ -154,7 +161,7 @@ class Test_TestSheriff(object):
         json_query = prepare_json_query(data1)
         rv = self.app.put('/status/{0}'.format(my_id1), headers=json_query['headers'], data=json_query['json'])
         res1 = json.loads(rv.data.decode('utf-8'))
-        rv = self.app.get('/statuses/')
+        rv = self.app_status.get('/statuses/')
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
         assert len(res['statuses']) == 1

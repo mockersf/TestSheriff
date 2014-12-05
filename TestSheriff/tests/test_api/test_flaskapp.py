@@ -74,3 +74,12 @@ class Test_api(object):
         assert res == {'result': [0, 1, 2, 3, 4, 5]}
         rv = test_app.get('/test_json_error')
         assert rv.status_code == 500
+
+    def test_index(self):
+        from api import api
+        my_app = api.app
+        rv = my_app.test_client().get('/')
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        assert res['_links'] == {'self': {'href': '/'}, 'statuses': {'href': '/v1/statuses/'}}
