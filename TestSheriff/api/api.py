@@ -27,6 +27,8 @@ app.json_encoder = CustomJSONEncoder
 from . import status
 app.register_blueprint(status.status_bp, url_prefix='/v1/statuses')
 
+from . import status_legacy
+
 @app.route('/', methods=['GET'])
 def index():
     links = {'self': {'href': url_for('index')},
