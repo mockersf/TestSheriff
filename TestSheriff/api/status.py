@@ -15,11 +15,19 @@ def prep_status(status):
     return dict
 
 
-@status_bp.route('/', methods=['GET'])
+@status_bp.route('/', methods=['GET', 'POST'])
 def list():
-    statuses = Status.list(sort=[(Status._on, Base.desc)])
-    statuses = [prep_status(status) for status in statuses]
-    return jsonify(result='Success', statuses=statuses)
+    if request.method == 'GET':
+        statuses = Status.list(sort=[(Status._on, Base.desc)])
+        statuses = [prep_status(status) for status in statuses]
+        return jsonify(result='Success', statuses=statuses)
+    if request.method == 'POST':
+        data = request.get_json()
+        status = Status(test_id=data['test_id'], test_type=data['type'],
+                        status=data['status'], details=data['details'])
+        status.save_and_update()
+        status = prep_status(status)
+        return jsonify(result='Success', status=status)
 
 
 @status_bp.route('/<status_id>', methods=['GET'])

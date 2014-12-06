@@ -139,6 +139,19 @@ class Test_TestSheriff(object):
         assert res['status']['_id'] == str(ads_after1[0]['_id'])
         assert res['status']['details']['browser'] == data1['details']['browser']
 
+    def test_post_collection(self):
+        my_id1 = str(uuid.uuid4())
+        data1 = {'test_id': my_id1, 'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
+        json_query = prepare_json_query(data1)
+        rv = self.app_status.post('/statuses/', headers=json_query['headers'], data=json_query['json'])
+        res1 = json.loads(rv.data.decode('utf-8'))
+        assert res1['result'] == 'Success'
+        assert res1['status']['details'] == data1['details']
+        rv = self.app_status.get(res1['status']['_links']['self']['href'])
+        assert rv.status_code == 200
+        res2 = json.loads(rv.data.decode('utf-8'))
+        assert res2 == res1
+
     def test_get(self):
         my_id1 = str(uuid.uuid4())
         data1 = {'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
