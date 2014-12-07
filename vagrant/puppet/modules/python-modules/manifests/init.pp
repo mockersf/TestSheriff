@@ -1,5 +1,5 @@
 class python-modules {
-  package { ['pymongo', 'flask']:
+  package { ['pymongo', 'flask', 'flask-restful']:
     ensure => present,
     provider => pip,
   }
