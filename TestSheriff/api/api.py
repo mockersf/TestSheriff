@@ -32,9 +32,6 @@ from . import test
 test.add_test(api)
 
 
-from . import status_legacy
-
-
 @app.route('/', methods=['GET'])
 def index():
     links = {'self': {'href': url_for('index')},
