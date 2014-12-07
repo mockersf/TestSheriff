@@ -1,6 +1,8 @@
 from datetime import datetime
 from flask.json import JSONEncoder
 from flask import url_for, jsonify
+from flask.ext import restful
+
 
 time_format = '%Y-%m-%d %H:%M:%S'
 
@@ -19,19 +21,23 @@ class CustomJSONEncoder(JSONEncoder):
         return JSONEncoder.default(self, obj)
 
 
-
 from TestSheriff_flask import app
-
 app.json_encoder = CustomJSONEncoder
+api = restful.Api(app)
+
 
 from . import status
-app.register_blueprint(status.status_bp, url_prefix='/v1/statuses')
+status.add_status(api)
+from . import test
+test.add_test(api)
+
 
 from . import status_legacy
+
 
 @app.route('/', methods=['GET'])
 def index():
     links = {'self': {'href': url_for('index')},
-             'statuses': {'href': url_for('status_v1.list')}
+             'statuses': {'href': api.url_for(status.List)}
             }
     return jsonify(result='Success', _links=links)

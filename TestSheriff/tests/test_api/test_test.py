@@ -23,7 +23,7 @@ def prepare_json_query(data):
     return {'headers': headers, 'json': json_data}
 
 
-class Test_api_status(object):
+class Test_api_test(object):
     def setup_method(self, method):
         from core import Base
         Base.base_prefix = 'test'
@@ -33,9 +33,9 @@ class Test_api_status(object):
         self._base_test = Base.Base().get_base()[Test.collection]
         app = Flask(__name__)
         app_api = restful.Api(app)
-        import api.status
-        api.status.add_status(app_api, version='test')
-        self.app_status = app.test_client()
+        import api.test
+        api.test.add_test(app_api, version='test')
+        self.app_test = app.test_client()
 
     def teardown_method(self, method):
         from core import Base
@@ -50,43 +50,40 @@ class Test_api_status(object):
 
     def test_post_collection(self):
         my_id1 = str(uuid.uuid4())
-        data1 = {'test_id': my_id1, 'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
+        data1 = {'test_id': my_id1, 'type': 'test_tool'}
         json_query = prepare_json_query(data1)
-        rv = self.app_status.post('/test/statuses', headers=json_query['headers'], data=json_query['json'])
+        rv = self.app_test.post('/test/tests', headers=json_query['headers'], data=json_query['json'])
         assert rv.status_code == 200
         res1 = json.loads(rv.data.decode('utf-8'))
         assert res1['result'] == 'Success'
-        assert res1['status']['details'] == data1['details']
-        rv = self.app_status.get(res1['status']['_links']['self']['href'])
+        assert res1['test']['test_id'] == my_id1
+        rv = self.app_test.get(res1['test']['_links']['self']['href'])
         assert rv.status_code == 200
         res2 = json.loads(rv.data.decode('utf-8'))
         assert res2 == res1
 
     def test_get(self):
         my_id1 = str(uuid.uuid4())
-        data1 = {'test_id': my_id1, 'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
+        data1 = {'test_id': my_id1, 'type': 'test_tool'}
         json_query = prepare_json_query(data1)
-        rv = self.app_status.post('/test/statuses', headers=json_query['headers'], data=json_query['json'])
+        rv = self.app_test.post('/test/tests', headers=json_query['headers'], data=json_query['json'])
         res1 = json.loads(rv.data.decode('utf-8'))
-        rv = self.app_status.get('/test/statuses/{0}'.format(uuid.uuid4()))
+        rv = self.app_test.get('/test/tests/{0}'.format(uuid.uuid4()))
         assert rv.status_code == 404
-        rv = self.app_status.get('/test/statuses/{0}'.format(res1['status']['_id']))
+        rv = self.app_test.get('/test/tests/{0}'.format(my_id1))
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
         assert res['result'] == 'Success'
-        assert res['status']['details'] == data1['details']
-        assert res['status']['status'] == 'SUCCESS'
-        assert res['status']['_links'] == {'self': {'href': '/test/statuses/{0}'.format(res1['status']['_id'])}}
+        assert res1['test']['test_id'] == my_id1
 
     def test_list(self):
         my_id1 = str(uuid.uuid4())
-        data1 = {'test_id': my_id1, 'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
+        data1 = {'test_id': my_id1, 'type': 'test_tool'}
         json_query = prepare_json_query(data1)
-        rv = self.app_status.post('/test/statuses', headers=json_query['headers'], data=json_query['json'])
+        rv = self.app_test.post('/test/tests', headers=json_query['headers'], data=json_query['json'])
         res1 = json.loads(rv.data.decode('utf-8'))
-        rv = self.app_status.get('/test/statuses')
+        rv = self.app_test.get('/test/tests')
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
-        assert len(res['statuses']) == 1
-        assert res['statuses'][0]['details'] == data1['details']
-        assert res['statuses'][0]['_links'] == {'self': {'href': '/test/statuses/{0}'.format(res1['status']['_id'])}}
+        assert len(res['tests']) == 1
+        assert res['tests'][0]['test_id'] == my_id1

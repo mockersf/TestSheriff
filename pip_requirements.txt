@@ -2,4 +2,5 @@ pytest
 pytest-cov
 python-coveralls
 flask
+flask-restful
 pymongo

@@ -7,7 +7,7 @@ from core.Status import Status
 from core import Base
 
 
-@app.route('/status/<test_id>', methods=['PUT', 'POST', 'GET'])
+@app.route('/status/<test_id>', methods=['PUT', 'POST', 'GET'], endpoint='status_legacy')
 def status(test_id):
     if request.method == 'PUT':
         return save_status(test_id)

@@ -178,7 +178,6 @@ class Test_core_status(object):
         test_type = str(uuid.uuid4())
         status = Status(test_id, test_type, test_status, details=details)
         status.save()
-        print(status.to_dict())
         status_jid = Status(base_id=status._id)
         status_get = status_jid.get()
         assert status_get.to_dict() == status.to_dict()
