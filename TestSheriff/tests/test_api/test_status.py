@@ -76,7 +76,7 @@ class Test_api_status(object):
         assert res['result'] == 'Success'
         assert res['status']['details'] == data1['details']
         assert res['status']['status'] == 'SUCCESS'
-        assert res['status']['_links'] == {'self': {'href': '/test/statuses/{0}'.format(res1['status']['_id'])}}
+        assert res['status']['_links']['self'] == {'href': '/test/statuses/{0}'.format(res1['status']['_id'])}
 
     def test_list(self):
         my_id1 = str(uuid.uuid4())
@@ -89,4 +89,4 @@ class Test_api_status(object):
         res = json.loads(rv.data.decode('utf-8'))
         assert len(res['statuses']) == 1
         assert res['statuses'][0]['details'] == data1['details']
-        assert res['statuses'][0]['_links'] == {'self': {'href': '/test/statuses/{0}'.format(res1['status']['_id'])}}
+        assert res['statuses'][0]['_links']['self'] == {'href': '/test/statuses/{0}'.format(res1['status']['_id'])}

@@ -1,23 +1,18 @@
 from flask import jsonify, url_for, abort
 from flask.ext import restful
 from flask.ext.restful import reqparse
-from werkzeug.routing import BuildError
 
 from core.Test import Test as TestCore
 from core.Status import Status as StatusCore
 from core import Base
+
+from .tools import build_url_other
 
 
 def add_test(api, version='v1', path='tests'):
     api.add_resource(List, "/{0}/{1}".format(version, path), endpoint='tests')
     api.add_resource(Test, "/{0}/{1}/<test_id>".format(version, path), endpoint='test')
 
-
-def build_url_other(endpoint, **values):
-    try:
-        return url_for(endpoint, **values)
-    except BuildError:
-        pass
 
 
 def prep_test(test, statuses={}):

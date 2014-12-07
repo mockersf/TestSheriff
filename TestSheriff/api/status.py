@@ -5,6 +5,8 @@ from werkzeug.routing import BuildError
 from core.Status import Status as StatusCore
 from core import Base
 
+from .tools import build_url_other
+
 
 def add_status(api, version='v1', path='statuses'):
     api.add_resource(List, "/{0}/{1}".format(version, path), endpoint='statuses')
@@ -14,11 +16,10 @@ def add_status(api, version='v1', path='statuses'):
 def prep_status(status):
     dict = status.to_dict()
     dict['_links'] = {}
+#    dict['links'].append({'rel': 'self', 'href': url_for('status', status_id=status._id)})
     dict['_links']['self'] = {'href': url_for('status', status_id=status._id)}
-    try:
-        dict['_links']['test'] = {'href': url_for('test', test_id=status._test_id)}
-    except BuildError:
-        pass
+    dict['_links']['test'] = {'href': build_url_other('test', test_id=status._test_id)}
+#        dict['links'].append({'rel': 'test', 'href': url_for('test', test_id=status._test_id)})
     return dict
 
 
