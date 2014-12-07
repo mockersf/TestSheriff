@@ -83,10 +83,29 @@ class Test_api_status(object):
         data1 = {'test_id': my_id1, 'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
         json_query = prepare_json_query(data1)
         rv = self.app_status.post('/test/statuses', headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 200
         res1 = json.loads(rv.data.decode('utf-8'))
         rv = self.app_status.get('/test/statuses')
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
+        assert res['count'] == 1
         assert len(res['statuses']) == 1
         assert res['statuses'][0]['details'] == data1['details']
         assert res['statuses'][0]['_links']['self'] == {'href': '/test/statuses/{0}'.format(res1['status']['_id'])}
+        data2 = {'test_id': my_id1, 'status': 'FAILURES', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
+        json_query = prepare_json_query(data2)
+        rv = self.app_status.post('/test/statuses', headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 200
+        my_id2 = str(uuid.uuid4())
+        data3 = {'test_id': my_id2, 'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
+        json_query = prepare_json_query(data3)
+        rv = self.app_status.post('/test/statuses', headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 200
+        rv = self.app_status.get('/test/statuses')
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['count'] == 3
+        rv = self.app_status.get('/test/statuses?test_id={0}'.format(my_id1))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['count'] == 2

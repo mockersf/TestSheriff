@@ -1,6 +1,6 @@
 from flask import jsonify, request, url_for, abort
 from flask.ext import restful
-from werkzeug.routing import BuildError
+from flask.ext.restful import reqparse
 
 from core.Status import Status as StatusCore
 from core import Base
@@ -16,18 +16,22 @@ def add_status(api, version='v1', path='statuses'):
 def prep_status(status):
     dict = status.to_dict()
     dict['_links'] = {}
-#    dict['links'].append({'rel': 'self', 'href': url_for('status', status_id=status._id)})
     dict['_links']['self'] = {'href': url_for('status', status_id=status._id)}
     dict['_links']['test'] = {'href': build_url_other('test', test_id=status._test_id)}
-#        dict['links'].append({'rel': 'test', 'href': url_for('test', test_id=status._test_id)})
     return dict
 
 
 class List(restful.Resource):
     def get(self):
-        statuses = StatusCore.list(sort=[(StatusCore._on, Base.desc)])
+        parser = reqparse.RequestParser()
+        parser.add_argument('test_id', type=str, help='test ID', required=False, location='args')
+        args = parser.parse_args()
+        query_filter = {}
+        if args['test_id'] is not None:
+            query_filter = {StatusCore._test_id: args['test_id']}
+        statuses = StatusCore.list(query_filter=query_filter, sort=[(StatusCore._on, Base.desc)])
         statuses = [prep_status(status) for status in statuses]
-        return jsonify(result='Success', statuses=statuses)
+        return jsonify(result='Success', statuses=statuses, count=len(statuses))
     def post(self):
         data = request.get_json()
         status = StatusCore(test_id=data['test_id'], test_type=data['type'],
