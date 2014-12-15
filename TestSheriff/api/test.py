@@ -27,7 +27,13 @@ def prep_test(test, statuses={}):
 
 class List(restful.Resource):
     def get(self):
-        tests = TestCore().get_all()#(sort=[(StatusCore._on, Base.desc)])
+        parser = reqparse.RequestParser()
+        parser.add_argument('test_type', type=str, help='test type', required=False, location='args')
+        args = parser.parse_args()
+        query_filter = {}
+        if args['test_type'] is not None:
+            query_filter = {TestCore._type: args['test_type']}
+        tests = TestCore().get_all(additional_filter=query_filter)#(sort=[(StatusCore._on, Base.desc)])
         tests = [prep_test(test) for test in tests]
         return jsonify(result='Success', tests=tests)
     def post(self):

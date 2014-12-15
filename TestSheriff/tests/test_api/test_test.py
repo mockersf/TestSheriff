@@ -87,3 +87,11 @@ class Test_api_test(object):
         res = json.loads(rv.data.decode('utf-8'))
         assert len(res['tests']) == 1
         assert res['tests'][0]['test_id'] == my_id1
+        rv = self.app_test.get('/test/tests?test_type=test_tool')
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert len(res['tests']) == 1
+        rv = self.app_test.get('/test/tests?test_type=zut')
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert len(res['tests']) == 0
