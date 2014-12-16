@@ -42,3 +42,14 @@ class TestType:
 
     def save(self):
         Base.Base().upsert_by_id(self.collection, self._test_type, self.to_dict())
+
+    def get_all(self, additional_filter=None):
+        query_filter = self.to_dict()
+        if additional_filter is not None:
+            query_filter.update(additional_filter)
+        return [TestType.from_dict(btt) for btt in Base.Base().get_all(self.collection, query_filter)]
+
+    def get_one(self):
+        query_filter = self.to_dict()
+        res = Base.Base().get_one(self.collection, query_filter)
+        return TestType.from_dict(res) if res is not None else None

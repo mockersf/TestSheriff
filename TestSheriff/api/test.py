@@ -6,23 +6,33 @@ from core.Test import Test as TestCore
 from core.Status import Status as StatusCore
 from core import Base
 
-from .tools import build_url_other
+from .tools import add_link_or_expand, new_endpoint
 
 
 def add_test(api, version='v1', path='tests'):
     api.add_resource(List, "/{0}/{1}".format(version, path), endpoint='tests')
     api.add_resource(Test, "/{0}/{1}/<test_id>".format(version, path), endpoint='test')
-
+    new_endpoint('tests', list_get)
 
 
 def prep_test(test, statuses={}):
     dict = test.to_dict()
     dict['_links'] = {}
-    dict['_links']['self'] = {'href': url_for('test', test_id=test._test_id)}
-    dict['_links']['statuses'] = {'href': build_url_other('statuses', test_id=test._test_id)}
+    add_link_or_expand(dict, 'self', 'test', expand=False, test_id=test._test_id)
+    add_link_or_expand(dict, 'statuses', 'statuses', test_id=test._test_id)
+    add_link_or_expand(dict, 'test_type', 'test_type', test_type=test._type)
     for status in statuses:
-        dict['_links'][status] = {'href': build_url_other('status', status_id=statuses[status]._id)}
+        add_link_or_expand(dict, status, 'status', status_id=statuses[status]._id)
     return dict
+
+
+def list_get(test_type=None):
+    query_filter = {}
+    if test_type is not None:
+        query_filter = {TestCore._type: test_type}
+    tests = TestCore().get_all(additional_filter=query_filter)#(sort=[(StatusCore._on, Base.desc)])
+    tests = [prep_test(test) for test in tests]
+    return tests
 
 
 class List(restful.Resource):
@@ -30,11 +40,7 @@ class List(restful.Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('test_type', type=str, help='test type', required=False, location='args')
         args = parser.parse_args()
-        query_filter = {}
-        if args['test_type'] is not None:
-            query_filter = {TestCore._type: args['test_type']}
-        tests = TestCore().get_all(additional_filter=query_filter)#(sort=[(StatusCore._on, Base.desc)])
-        tests = [prep_test(test) for test in tests]
+        tests = list_get(args['test_type'])
         return jsonify(result='Success', tests=tests)
     def post(self):
         parser = reqparse.RequestParser()

@@ -5,19 +5,20 @@ from flask.ext.restful import reqparse
 from core.Status import Status as StatusCore
 from core import Base
 
-from .tools import build_url_other
+from .tools import add_link_or_expand, new_endpoint
 
 
 def add_status(api, version='v1', path='statuses'):
     api.add_resource(List, "/{0}/{1}".format(version, path), endpoint='statuses')
     api.add_resource(Status, "/{0}/{1}/<status_id>".format(version, path), endpoint='status')
+    new_endpoint('status', status_get)
 
 
 def prep_status(status):
     dict = status.to_dict()
     dict['_links'] = {}
-    dict['_links']['self'] = {'href': url_for('status', status_id=status._id)}
-    dict['_links']['test'] = {'href': build_url_other('test', test_id=status._test_id)}
+    add_link_or_expand(dict, 'self', 'status', expand=False, status_id=status._id)
+    add_link_or_expand(dict, 'test', 'test', test_id=status._test_id)
     return dict
 
 
@@ -41,10 +42,15 @@ class List(restful.Resource):
         return jsonify(result='Success', status=status)
 
 
+def status_get(status_id):
+    status = StatusCore(base_id=status_id).get()
+    if status is None:
+        abort(404)
+    status = prep_status(status)
+    return status
+
+
 class Status(restful.Resource):
     def get(self, status_id):
-        status = StatusCore(base_id=status_id).get()
-        if status is None:
-            abort(404)
-        status = prep_status(status)
+        status = status_get(status_id)
         return jsonify(result='Success', status=status)

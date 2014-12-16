@@ -30,11 +30,15 @@ from . import status
 status.add_status(api)
 from . import test
 test.add_test(api)
+from . import testType
+testType.add_test_type(api)
 
 
 @app.route('/', methods=['GET'])
 def index():
     links = {'self': {'href': url_for('index')},
-             'statuses': {'href': api.url_for(status.List)}
+             'statuses': {'href': api.url_for(status.List)},
+             'tests': {'href': api.url_for(test.List)},
+             'test types': {'href': api.url_for(testType.List)},
             }
     return jsonify(result='Success', _links=links)

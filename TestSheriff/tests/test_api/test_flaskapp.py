@@ -82,4 +82,8 @@ class Test_api(object):
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
         assert res['result'] == 'Success'
-        assert res['_links'] == {'self': {'href': '/'}, 'statuses': {'href': '/v1/statuses'}}
+        assert res['_links'] == {'self': {'href': '/'},
+                                 'statuses': {'href': '/v1/statuses'},
+                                 'tests': {'href': '/v1/tests'},
+                                 'test types': {'href': '/v1/test_types'},
+                                }
