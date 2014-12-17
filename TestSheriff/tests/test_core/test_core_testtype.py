@@ -51,3 +51,41 @@ class Test_core_testtype(object):
         test_type_obj = TestType.from_status(status)
         assert test_type_obj._test_type == test_type
         assert test_type_obj._doc_fields == ['browser']
+
+    def test_get_all(self):
+        from core.TestType import TestType
+        from core.Base import Base
+        my_type1 = str(uuid.uuid4())
+        doc1 = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
+        test_type1 = TestType(my_type1, doc1)
+        test_type1.save()
+        my_type2 = str(uuid.uuid4())
+        doc2 = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
+        test_type2 = TestType(my_type2, doc2)
+        test_type2.save()
+        types = TestType().get_all()
+        assert len(types) == 2
+        types = TestType(my_type2).get_all()
+        assert len(types) == 1
+        assert types[0]._doc_fields == doc2
+        types = TestType().get_all(additional_filter={TestType._test_type: my_type1})
+        assert len(types) == 1
+        assert types[0]._doc_fields == doc1
+
+    def test_get_one(self):
+        from core.TestType import TestType
+        from core.Base import Base
+        my_type1 = str(uuid.uuid4())
+        doc1 = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
+        test_type1 = TestType(my_type1, doc1)
+        test_type1.save()
+        my_type2 = str(uuid.uuid4())
+        doc2 = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
+        test_type2 = TestType(my_type2, doc2)
+        test_type2.save()
+        type2 = TestType(my_type2).get_one()
+        assert type2._doc_fields == doc2
+        assert type2._test_type == my_type2
+        type1 = TestType(my_type1).get_one()
+        assert type1._doc_fields == doc1
+        assert type1._test_type == my_type1
