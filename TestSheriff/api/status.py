@@ -9,15 +9,14 @@ from .tools import add_link_or_expand, new_endpoint
 
 
 def add_status(api, version='v1', path='statuses'):
-    api.add_resource(List, "/{0}/{1}".format(version, path), endpoint='statuses')
-    api.add_resource(Status, "/{0}/{1}/<status_id>".format(version, path), endpoint='status')
-    new_endpoint('status', status_get)
+    new_endpoint(api, 'statuses', "/{0}/{1}".format(version, path), List, can_expand=False)
+    new_endpoint(api, 'status', "/{0}/{1}/<status_id>".format(version, path), Status, can_expand=True, function=status_get)
 
 
 def prep_status(status):
     dict = status.to_dict()
     dict['_links'] = {}
-    add_link_or_expand(dict, 'self', 'status', expand=False, status_id=status._id)
+    add_link_or_expand(dict, 'self', 'status', status_id=status._id)
     add_link_or_expand(dict, 'test', 'test', test_id=status._test_id)
     return dict
 

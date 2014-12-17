@@ -10,15 +10,14 @@ from .tools import add_link_or_expand, new_endpoint
 
 
 def add_test(api, version='v1', path='tests'):
-    api.add_resource(List, "/{0}/{1}".format(version, path), endpoint='tests')
-    api.add_resource(Test, "/{0}/{1}/<test_id>".format(version, path), endpoint='test')
-    new_endpoint('tests', list_get)
+    new_endpoint(api, 'tests', "/{0}/{1}".format(version, path), List, can_expand=True, function=list_get)
+    new_endpoint(api, 'test', "/{0}/{1}/<test_id>".format(version, path), Test, can_expand=True, function=test_get)
 
 
 def prep_test(test, statuses={}):
     dict = test.to_dict()
     dict['_links'] = {}
-    add_link_or_expand(dict, 'self', 'test', expand=False, test_id=test._test_id)
+    add_link_or_expand(dict, 'self', 'test', test_id=test._test_id)
     add_link_or_expand(dict, 'statuses', 'statuses', test_id=test._test_id)
     add_link_or_expand(dict, 'test_type', 'test_type', test_type=test._type)
     for status in statuses:
@@ -41,7 +40,7 @@ class List(restful.Resource):
         parser.add_argument('test_type', type=str, help='test type', required=False, location='args')
         args = parser.parse_args()
         tests = list_get(args['test_type'])
-        return jsonify(result='Success', tests=tests)
+        return jsonify(result='Success', tests=tests, count=len(tests))
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('test_id', type=str, help='test ID', required=True, location='json')
@@ -54,26 +53,31 @@ class List(restful.Resource):
         return jsonify(result='Success', test=test)
 
 
+def test_get(test_id):
+    test = TestCore(test_id=test_id).get_one()
+    if test is None:
+        abort(404)
+    statuses = {}
+    lastStatuses = StatusCore.list(query_filter={StatusCore._test_id: test._test_id,
+                                                 StatusCore._last: True},
+                                   sort=[(StatusCore._on, Base.desc)])
+    if lastStatuses != []:
+        statuses['last_status'] = lastStatuses[0]
+    lastSuccess = StatusCore.list(query_filter={StatusCore._test_id: test._test_id,
+                                                StatusCore._status: 'SUCCESS'},
+                                  sort=[(StatusCore._on, Base.desc)])
+    if lastSuccess != []:
+        statuses['last_status_success'] = lastSuccess[0]
+    lastFailure = StatusCore.list(query_filter={StatusCore._test_id: test._test_id,
+                                                StatusCore._status: 'FAILURE'},
+                                  sort=[(StatusCore._on, Base.desc)])
+    if lastFailure != []:
+        statuses['last_status_failure'] = lastFailure[0]
+    test = prep_test(test, statuses)
+    return test
+
+
 class Test(restful.Resource):
     def get(self, test_id):
-        test = TestCore(test_id=test_id).get_one()
-        if test is None:
-            abort(404)
-        statuses = {}
-        lastStatuses = StatusCore.list(query_filter={StatusCore._test_id: test._test_id,
-                                                     StatusCore._last: True},
-                                       sort=[(StatusCore._on, Base.desc)])
-        if lastStatuses != []:
-            statuses['last_status'] = lastStatuses[0]
-        lastSuccess = StatusCore.list(query_filter={StatusCore._test_id: test._test_id,
-                                                    StatusCore._status: 'SUCCESS'},
-                                      sort=[(StatusCore._on, Base.desc)])
-        if lastSuccess != []:
-            statuses['last_status_success'] = lastSuccess[0]
-        lastFailure = StatusCore.list(query_filter={StatusCore._test_id: test._test_id,
-                                                    StatusCore._status: 'FAILURE'},
-                                      sort=[(StatusCore._on, Base.desc)])
-        if lastFailure != []:
-            statuses['last_status_failure'] = lastFailure[0]
-        test = prep_test(test, statuses)
+        test = test_get(test_id)
         return jsonify(result='Success', test=test)
