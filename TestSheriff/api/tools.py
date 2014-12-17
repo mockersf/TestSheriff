@@ -28,7 +28,7 @@ def add_link_or_expand(dict_json, rel, endpoint, **kwargs):
         args = parser.parse_args()
         expand = args['expand'] if args['expand'] is not None else []
         expand_all = []
-        map(lambda i: expand_all.extend(i), [i.split(',') for i in expand])
+        list(map(lambda i: expand_all.extend(i), [i.split(',') for i in expand]))
         if rel not in expand_all:
             dict_json[rel] = url
         else:

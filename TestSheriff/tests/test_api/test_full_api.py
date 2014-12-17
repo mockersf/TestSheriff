@@ -49,3 +49,38 @@ class Test_api(object):
         assert res['test']['_links']['last_status'] == res_failure['status']['_links']['self']
         assert res['test']['_links']['last_status_success'] == res_success['status']['_links']['self']
         assert res['test']['_links']['last_status_failure'] == res_failure['status']['_links']['self']
+
+    def test_expand(self):
+        my_id1 = str(uuid.uuid4())
+        data1 = {'test_id': my_id1, 'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
+        json_query = prepare_json_query(data1)
+        rv = self.app.post('/v1/statuses', headers=json_query['headers'], data=json_query['json'])
+        res_success = json.loads(rv.data.decode('utf-8'))
+        data1 = {'test_id': my_id1, 'status': 'FAILURE', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
+        json_query = prepare_json_query(data1)
+        rv = self.app.post('/v1/statuses', headers=json_query['headers'], data=json_query['json'])
+        res_failure = json.loads(rv.data.decode('utf-8'))
+        print('doing the query with argument')
+        rv = self.app.get('/v1/tests/{0}?expand=last_status,last_status_success'.format(my_id1))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert type(res['test']['last_status']) == type({})
+        assert type(res['test']['last_status_success']) == type({})
+        assert type(res['test']['last_status_failure']) == type('String')
+
+    def test_expand_failed(self):
+        from core import Base
+        from core.Status import Status
+        test_id = str(uuid.uuid4())
+        test_status = 'SUCCESS'
+        test_type = str(uuid.uuid4())
+        status = Status(test_id, test_type, test_status)
+        status_id = str(Base.Base().insert(Status.collection, status.to_dict()))
+        rv = self.app.get('/v1/statuses/{0}'.format(status_id))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert type(res['status']['test']) == type('String')
+        rv = self.app.get('/v1/statuses/{0}?expand=test'.format(status_id))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert type(res['status']['test']) == type('String')
