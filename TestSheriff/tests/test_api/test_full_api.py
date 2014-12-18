@@ -66,7 +66,7 @@ class Test_api(object):
         res = json.loads(rv.data.decode('utf-8'))
         assert type(res['test']['last_status']) == type({})
         assert type(res['test']['last_status_success']) == type({})
-        assert type(res['test']['last_status_failure']) == type('String')
+        assert type(res['test']['last_status_failure']) in [type('String'), type(u'Unicode')]
 
     def test_expand_failed(self):
         from core import Base
@@ -79,8 +79,8 @@ class Test_api(object):
         rv = self.app.get('/v1/statuses/{0}'.format(status_id))
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
-        assert type(res['status']['test']) == type('String')
+        assert type(res['status']['test']) in [type('String'), type(u'Unicode')]
         rv = self.app.get('/v1/statuses/{0}?expand=test'.format(status_id))
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
-        assert type(res['status']['test']) == type('String')
+        assert type(res['status']['test']) in [type('String'), type(u'Unicode')]
