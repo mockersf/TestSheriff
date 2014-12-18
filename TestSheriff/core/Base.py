@@ -2,6 +2,9 @@ import pymongo
 import bson
 
 base_prefix = ''
+base_host = 'localhost'
+base_port = 27017
+
 asc = pymongo.ASCENDING
 desc = pymongo.DESCENDING
 
@@ -9,7 +12,7 @@ class Base:
     _base = None
 
     def __init__(self):
-        connection = pymongo.MongoClient('localhost', 27017)
+        connection = pymongo.MongoClient(base_host, base_port)
         self._base = connection[base_prefix + 'TestSheriff']
 
     def get_base(self):
