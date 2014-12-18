@@ -26,7 +26,7 @@ class Test_core_index(object):
         field = str(uuid.uuid4())
         index = Index(my_type, field)
         assert '{0}'.format(index) == '<Index {0} ({1}) : 0 values>'.format(field, my_type)
-        assert index.to_dict() == {'type': my_type, 'field': field, 'values': []}
+        assert index.to_dict() == {'type': my_type, 'field': field}
         index._values = ['a', 'b', 'c']
         assert '{0}'.format(index) == '<Index {0} ({1}) : 3 values>'.format(field, my_type)
         index2 = Index.from_dict(index.to_dict())
@@ -37,7 +37,7 @@ class Test_core_index(object):
         from core.Base import Base
         my_type = str(uuid.uuid4())
         field = str(uuid.uuid4())
-        values = ['a', 'b', 'c']
+        values = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
         index = Index(my_type, field, values)
         index.save()
         ast = Base().get_all(Index.collection, {})
@@ -46,7 +46,7 @@ class Test_core_index(object):
         assert ast[0]['field'] == field
         assert ast[0]['values'] == values
         index2 = Index(my_type, field)
-        assert index2._values == []
+        assert index2._values == None
         index2 = index2.get()
         assert index2._values == values
 
@@ -106,3 +106,23 @@ class Test_core_index(object):
         ast = Base().get_all(Index.collection, {'field': 'environment'})
         assert len(ast) == 1
         assert ast[0]['values'] == ['master']
+
+    def test_get_all(self):
+        from core.Index import Index
+        from core.Base import Base
+        my_type1 = str(uuid.uuid4())
+        field1 = str(uuid.uuid4())
+        values1 = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
+        index1 = Index(my_type1, field1, values1)
+        index1.save()
+        my_type2 = str(uuid.uuid4())
+        field2 = str(uuid.uuid4())
+#        values2 = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
+        index2 = Index(my_type2, field2, values1)
+        index2.save()
+        indexes = Index().get_all()
+        assert len(indexes) == 2
+        indexes = Index(test_type=my_type1).get_all()
+        assert len(indexes) == 1
+        indexes = Index(values=values1).get_all()
+        assert len(indexes) == 2
