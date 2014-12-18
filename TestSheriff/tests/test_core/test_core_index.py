@@ -126,3 +126,5 @@ class Test_core_index(object):
         assert len(indexes) == 1
         indexes = Index(values=values1).get_all()
         assert len(indexes) == 2
+        indexes = Index().get_all({'type': my_type1})
+        assert len(indexes) == 1

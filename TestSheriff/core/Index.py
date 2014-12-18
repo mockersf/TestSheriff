@@ -63,7 +63,6 @@ class Index:
         query_filter = self.to_dict()
         if additional_filter is not None:
             query_filter.update(additional_filter)
-        print(query_filter)
         return [Index.from_dict(index) for index in Base.Base().get_all(self.collection, query_filter)]
 
     def save(self):
