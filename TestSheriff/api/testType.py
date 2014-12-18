@@ -27,7 +27,7 @@ class List(restful.Resource):
     def get(self):
         test_types = TestTypeCore().get_all()
         test_types = [prep_test_type(test_type) for test_type in test_types]
-        return jsonify(result='Success', test_types=test_types)
+        return jsonify(result='Success', test_types=test_types, count=len(test_types))
 
 
 def testtype_get(test_type):
@@ -39,10 +39,7 @@ def testtype_get(test_type):
 
 class TestType(restful.Resource):
     def get(self, test_type):
-        testType = test_get(test_type)
-        if testType is None:
-            abort(404)
-        testType = prep_test_type(testType)
+        testType = testtype_get(test_type)
         return jsonify(result='Success', test_type=testType)
 
 
