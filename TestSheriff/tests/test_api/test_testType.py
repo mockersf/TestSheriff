@@ -82,3 +82,52 @@ class Test_api_testType(object):
         assert res['test_type']['type'] == my_type1
         rv = self.app_test_type.get('/test/test_types/{0}'.format(str(uuid.uuid4())))
         assert rv.status_code == 404
+
+    def test_indexes(self):
+        from core.Index import Index
+        from core.Status import Status
+        from core.Base import Base
+        test_id = str(uuid.uuid4())
+        test_status = 'SUCCESS'
+        test_type = str(uuid.uuid4())
+        field1 = 'browser'
+        field2 = 'environment'
+        details1 = {field1: 'Firefox', field2: 'master'}
+        status1 = Status(test_id, test_type, test_status, details=details1)
+        status1.save()
+        details2 = {field1: 'Chrome', field2: 'master'}
+        status2 = Status(test_id, test_type, test_status, details=details2)
+        status2.save()
+        rv = self.app_test_type.get('/test/test_types/{0}/indexes'.format(test_type))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['count'] == 2
+        assert sorted([index['field'] for index in res['indexes']]) == sorted(['browser', 'environment'])
+        rv = self.app_test_type.get('/test/test_types/{0}/indexes'.format(str(uuid.uuid4())))
+        assert rv.status_code == 404
+
+    def test_index(self):
+        from core.Index import Index
+        from core.Status import Status
+        from core.Base import Base
+        test_id = str(uuid.uuid4())
+        test_status = 'SUCCESS'
+        test_type = str(uuid.uuid4())
+        field1 = 'browser'
+        field2 = 'environment'
+        details1 = {field1: 'Firefox', field2: 'master'}
+        status1 = Status(test_id, test_type, test_status, details=details1)
+        status1.save()
+        details2 = {field1: 'Chrome', field2: 'master'}
+        status2 = Status(test_id, test_type, test_status, details=details2)
+        status2.save()
+        rv = self.app_test_type.get('/test/test_types/{0}/indexes/{1}'.format(str(uuid.uuid4()), field1))
+        assert rv.status_code == 404
+        rv = self.app_test_type.get('/test/test_types/{0}/indexes/{1}'.format(test_type, str(uuid.uuid4())))
+        assert rv.status_code == 404
+        rv = self.app_test_type.get('/test/test_types/{0}/indexes/{1}'.format(test_type, field1))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['index']['field'] == field1
+        assert res['index']['type'] == test_type
+        assert sorted(res['index']['values']) == sorted(['Firefox', 'Chrome'])
