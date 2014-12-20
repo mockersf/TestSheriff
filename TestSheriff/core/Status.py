@@ -55,19 +55,19 @@ class Status:
     @staticmethod
     def from_dict(status_dict):
         status = Status()
-        if 'test_id' in status_dict:
+        if Status._test_id in status_dict:
             status._test_id = status_dict[Status._test_id]
-        if 'type' in status_dict:
+        if Status._type in status_dict:
             status._type = status_dict[Status._type]
-        if 'on' in status_dict:
+        if Status._on in status_dict:
             status._on = status_dict[Status._on]
-        if 'status' in status_dict:
+        if Status._status in status_dict:
             status._status = status_dict[Status._status]
-        if 'details' in status_dict:
+        if Status._details in status_dict:
             status._details = status_dict[Status._details]
-        if 'last' in status_dict:
+        if Status._last in status_dict:
             status._last = status_dict[Status._last]
-        if '_id' in status_dict:
+        if Status._id in status_dict:
             status._id = str(status_dict[Status._id])
         return status
 
@@ -91,7 +91,7 @@ class Status:
     def get_last(self):
         Test(test_id=self._test_id).save()
         query_filter = self.to_dict()
-        query_filter['last'] = True
+        query_filter[Status._last] = True
         res = Base.Base().get_one(self.collection, query_filter)
         return Status.from_dict(res) if res is not None else None
 
@@ -101,7 +101,7 @@ class Status:
         return Status.from_dict(res) if res is not None else None
 
     def update_last(self):
-        Base.Base().update(self.collection, {'test_id': self._test_id, 'last': True}, {'last': False})
+        Base.Base().update(self.collection, {Status._test_id: self._test_id, Status._last: True}, {Status._last: False})
 
     def save_and_update(self):
         self.update_last()
