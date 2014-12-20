@@ -95,3 +95,13 @@ class Test_core_testtype(object):
         type1 = TestType(my_type1).get_one()
         assert type1._doc_fields == doc1
         assert type1._test_type == my_type1
+
+    def test_run(self):
+        from core.TestType import TestType
+        from core.Base import Base
+        my_type1 = str(uuid.uuid4())
+        doc1 = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
+        test_type = TestType(my_type1, doc1)
+        assert test_type.run == test_type._default_run
+        test_type._run = 1
+        assert test_type.run == 1

@@ -10,6 +10,10 @@ class TestType:
     _doc_fields_to_index = 'doc_fields_to_index'
     _purge = 'purge'
     _run = 'run'
+    _default_purge = [{'field': 'Status._on', 'operator': 'before', 'value': 'datetime.datetime.now() - datetime.timedelta(days=7)'},
+                      {'field': 'Status._last', 'operator': 'not equal', 'value': 'True'}]
+    _default_run = [{'field': 'Status._last', 'operator': 'equal', 'value': 'True'},
+                    {'field': 'Status._status', 'operator': 'equal', 'value': 'SUCCESS'}]
 
     def __init__(self, test_type=None, doc_fields=None, doc_fields_to_index=None, purge=None, run=None):
         self._test_type = test_type
@@ -71,3 +75,9 @@ class TestType:
         query_filter = self.to_dict()
         res = Base.Base().get_one(self.collection, query_filter)
         return TestType.from_dict(res) if res is not None else None
+
+    @property
+    def run(self):
+        if self._run is None:
+            return self._default_run
+        return self._run
