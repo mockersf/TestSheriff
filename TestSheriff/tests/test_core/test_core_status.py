@@ -4,6 +4,9 @@ import datetime
 import random
 import time
 
+from tests import tools
+
+
 def setup_module(module):
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
@@ -14,14 +17,7 @@ class Test_core_status(object):
         Base.base_prefix = 'test'
 
     def teardown_method(self, method):
-        from core import Base
-        from core.Status import Status
-        from core.Test import Test
-        from core.Index import Index
-        from core.TestType import TestType
-        Base.Base().get_base()[Status.collection].drop()
-        Base.Base().get_base()[Test.collection].drop()
-        Base.Base().get_base()[TestType.collection].drop()
+        tools.db_drop()
 
     def test_repr_getter_setter(self):
         from core.Status import Status
