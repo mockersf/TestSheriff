@@ -46,6 +46,18 @@ class TestType(restful.Resource):
     def get(self, test_type):
         testType = testtype_get(test_type)
         return jsonify(result='Success', test_type=testType)
+    def patch(self, test_type):
+        testType = TestTypeCore(test_type=test_type).get_one()
+        if testType is None:
+            abort(404)
+        parser = reqparse.RequestParser()
+        parser.add_argument('doc_fields_to_index', type=str, help='list of the document fields to index', required=False, action='append')
+        args = parser.parse_args()
+        if args['doc_fields_to_index'] is not None:
+            testType._doc_fields_to_index = args['doc_fields_to_index']
+        testType.save()
+        testType = prep_test_type(testType)
+        return jsonify(result='Success', test_type=testType)
 
 
 def prep_index(index):

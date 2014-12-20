@@ -129,3 +129,24 @@ class Test_api_testType(object):
         assert res['index']['field'] == field1
         assert res['index']['type'] == test_type
         assert sorted(res['index']['values']) == sorted(['Firefox', 'Chrome'])
+
+    def test_patch_testtype(self):
+        from core.TestType import TestType
+        my_type1 = str(uuid.uuid4())
+        doc1 = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
+        test_type1 = TestType(my_type1, doc1)
+        test_type1.save()
+        my_type2 = str(uuid.uuid4())
+        doc2 = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
+        test_type2 = TestType(my_type2, doc2)
+        test_type2.save()
+        my_id1 = str(uuid.uuid4())
+        data1 = {'doc_fields_to_index': [str(uuid.uuid4()), str(uuid.uuid4())]}
+        json_query = prepare_json_query(data1)
+        rv = self.app_test_type.patch('/test/test_types/{0}'.format(my_type1), headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['test_type']['type'] == my_type1
+        assert res['test_type']['doc_fields_to_index'] == data1['doc_fields_to_index']
+        rv = self.app_test_type.patch('/test/test_types/{0}'.format(str(uuid.uuid4())), headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 404
