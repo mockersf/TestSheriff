@@ -111,6 +111,8 @@ class Status:
     def should_i_run(self):
         tt = TestType.from_status(self).get_one()
         status_list = Status.list({Status._test_id:self._test_id})
+        if len(status_list) == 0:
+            return True
         for field in tt.run:
             status_list_filtered = []
             try:
