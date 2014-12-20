@@ -22,9 +22,12 @@ class Test_core_testtype(object):
         from core.TestType import TestType
         my_type = str(uuid.uuid4())
         doc = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
-        test_type = TestType(my_type, doc)
+        doc_fields_to_index = [doc[0]]
+        purge = str(uuid.uuid4())
+        run = str(uuid.uuid4())
+        test_type = TestType(my_type, doc, doc_fields_to_index, purge, run)
         assert '{0}'.format(test_type) == '<TestType {0} ({1})>'.format(my_type, doc)
-        assert test_type.to_dict() == {'type': my_type, 'doc_fields': doc}
+        assert test_type.to_dict() == {'type': my_type, 'doc_fields': doc, 'doc_fields_to_index': [doc[0]], 'purge': purge, 'run': run}
         test_type2 = TestType.from_dict(test_type.to_dict())
         assert test_type2.to_dict() == test_type.to_dict()
 
@@ -51,6 +54,9 @@ class Test_core_testtype(object):
         test_type_obj = TestType.from_status(status)
         assert test_type_obj._test_type == test_type
         assert test_type_obj._doc_fields == ['browser']
+        assert test_type_obj._doc_fields_to_index == None
+        assert test_type_obj._purge == None
+        assert test_type_obj._run == None
 
     def test_get_all(self):
         from core.TestType import TestType

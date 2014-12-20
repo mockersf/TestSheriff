@@ -10,6 +10,8 @@ from random import randint
 from flask import Flask, url_for
 from flask.ext import restful
 
+from tests import tools
+
 
 def setup_module(module):
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
@@ -40,15 +42,7 @@ class Test_api_testType(object):
         self.app_test_type = app.test_client()
 
     def teardown_method(self, method):
-        from core import Base
-        from core.Index import Index
-        from core.Test import Test
-        from core.Status import Status
-        from core.TestType import TestType
-        Base.Base().get_base()[Index.collection].drop()
-        Base.Base().get_base()[Test.collection].drop()
-        Base.Base().get_base()[Status.collection].drop()
-        Base.Base().get_base()[TestType.collection].drop()
+        tools.db_drop()
 
     def test_get_collection(self):
         from core.TestType import TestType
@@ -86,12 +80,14 @@ class Test_api_testType(object):
     def test_indexes(self):
         from core.Index import Index
         from core.Status import Status
+        from core.TestType import TestType
         from core.Base import Base
         test_id = str(uuid.uuid4())
         test_status = 'SUCCESS'
         test_type = str(uuid.uuid4())
         field1 = 'browser'
         field2 = 'environment'
+        TestType(test_type, doc_fields_to_index=[field1, field2]).save()
         details1 = {field1: 'Firefox', field2: 'master'}
         status1 = Status(test_id, test_type, test_status, details=details1)
         status1.save()
@@ -109,12 +105,14 @@ class Test_api_testType(object):
     def test_index(self):
         from core.Index import Index
         from core.Status import Status
+        from core.TestType import TestType
         from core.Base import Base
         test_id = str(uuid.uuid4())
         test_status = 'SUCCESS'
         test_type = str(uuid.uuid4())
         field1 = 'browser'
         field2 = 'environment'
+        TestType(test_type, doc_fields_to_index=[field1, field2]).save()
         details1 = {field1: 'Firefox', field2: 'master'}
         status1 = Status(test_id, test_type, test_status, details=details1)
         status1.save()

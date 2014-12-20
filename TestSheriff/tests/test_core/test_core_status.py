@@ -47,6 +47,7 @@ class Test_core_status(object):
         test_type = str(uuid.uuid4())
         details = {'browser': random.choice(['Firefox', 'Chrome'])}
         status = Status(test_id, test_type, test_status, details=details)
+        TestType(test_type, doc_fields_to_index=['browser']).save()
         now = datetime.datetime.now()
         status.save()
         ast = Base().get_all(Status.collection, {})

@@ -30,27 +30,28 @@ class Index:
     @staticmethod
     def from_dict(index_dict):
         index = Index()
-        if index_dict[Index._test_type] is not None:
+        if Index._test_type in index_dict:
             index._test_type = index_dict[Index._test_type]
-        if index_dict[Index._field] is not None:
+        if Index._field in index_dict:
             index._field = index_dict[Index._field]
-        if index_dict[Index._values] is not None:
+        if Index._values in index_dict:
             index._values = index_dict[Index._values]
         return index
 
     @staticmethod
     def index(status):
         if status._details is not None:
-            test_type = status._type
-            fields = [key for key in status._details]
-            for field in fields:
-                current_index = Index(test_type=test_type, field=field, values=[])
-                index_existing = current_index.get()
-                if index_existing is not None:
-                    current_index = index_existing
-                if status._details[field] not in current_index._values:
-                    current_index._values.append(status._details[field])
-                    current_index.save()
+            test_type = TestType(test_type=status._type).get_one()
+            if test_type._doc_fields_to_index is not None:
+                fields = [key for key in status._details if key in test_type._doc_fields_to_index]
+                for field in fields:
+                    current_index = Index(test_type=test_type._test_type, field=field, values=[])
+                    index_existing = current_index.get()
+                    if index_existing is not None:
+                        current_index = index_existing
+                    if status._details[field] not in current_index._values:
+                        current_index._values.append(status._details[field])
+                        current_index.save()
 
     def get(self):
         query_filter = self.to_dict()
