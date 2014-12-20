@@ -19,11 +19,12 @@ def add_test_type(api, version='v1', path='test_types'):
 
 
 def prep_test_type(test_type):
-    dict = test_type.to_dict()
-    dict['_links'] = {}
-    add_link_or_expand(dict, 'self', 'test_type', test_type=test_type._test_type)
-    add_link_or_expand(dict, 'tests', 'tests', test_type=test_type._test_type)
-    return dict
+    tt_dict = test_type.to_dict()
+    tt_dict['_links'] = {}
+    add_link_or_expand(tt_dict, 'self', 'test_type', test_type=test_type._test_type)
+    add_link_or_expand(tt_dict, 'tests', 'tests', test_type=test_type._test_type)
+    add_link_or_expand(tt_dict, 'indexes', 'test_type_indexes', test_type=test_type._test_type)
+    return tt_dict
 
 
 class List(restful.Resource):
