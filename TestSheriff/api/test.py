@@ -12,6 +12,7 @@ from .tools import add_link_or_expand, new_endpoint
 def add_test(api, version='v1', path='tests'):
     new_endpoint(api, 'tests', "/{0}/{1}".format(version, path), List, can_expand=True, function=list_get)
     new_endpoint(api, 'test', "/{0}/{1}/<test_id>".format(version, path), Test, can_expand=True, function=test_get)
+    new_endpoint(api, 'test_run', "/{0}/{1}/<test_id>/run".format(version, path), Run, can_expand=False)
 
 
 def prep_test(test, statuses={}):
@@ -81,3 +82,10 @@ class Test(restful.Resource):
     def get(self, test_id):
         test = test_get(test_id)
         return jsonify(result='Success', test=test)
+
+
+class Run(restful.Resource):
+    def get(self, test_id):
+        status = StatusCore(test_id=test_id)
+        run = status.should_i_run()
+        return jsonify(result='Success', run=run)
