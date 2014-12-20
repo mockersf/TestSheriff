@@ -12,18 +12,19 @@ from .tools import add_link_or_expand, new_endpoint
 def add_test(api, version='v1', path='tests'):
     new_endpoint(api, 'tests', "/{0}/{1}".format(version, path), List, can_expand=True, function=list_get)
     new_endpoint(api, 'test', "/{0}/{1}/<test_id>".format(version, path), Test, can_expand=True, function=test_get)
-    new_endpoint(api, 'test_run', "/{0}/{1}/<test_id>/run".format(version, path), Run, can_expand=False)
+    new_endpoint(api, 'test_run', "/{0}/{1}/<test_id>/run".format(version, path), Run, can_expand=True, function=run_get)
 
 
 def prep_test(test, statuses={}):
-    dict = test.to_dict()
-    dict['_links'] = {}
-    add_link_or_expand(dict, 'self', 'test', test_id=test._test_id)
-    add_link_or_expand(dict, 'statuses', 'statuses', test_id=test._test_id)
-    add_link_or_expand(dict, 'test_type', 'test_type', test_type=test._type)
+    test_dict = test.to_dict()
+    test_dict['_links'] = {}
+    add_link_or_expand(test_dict, 'self', 'test', test_id=test._test_id)
+    add_link_or_expand(test_dict, 'statuses', 'statuses', test_id=test._test_id)
+    add_link_or_expand(test_dict, 'test_type', 'test_type', test_type=test._type)
+    add_link_or_expand(test_dict, 'run', 'test_run', test_id=test._test_id)
     for status in statuses:
-        add_link_or_expand(dict, status, 'status', status_id=statuses[status]._id)
-    return dict
+        add_link_or_expand(test_dict, status, 'status', status_id=statuses[status]._id)
+    return test_dict
 
 
 def list_get(test_type=None):
@@ -84,8 +85,13 @@ class Test(restful.Resource):
         return jsonify(result='Success', test=test)
 
 
+def run_get(test_id):
+    status = StatusCore(test_id=test_id)
+    run = status.should_i_run()
+    return run
+
+
 class Run(restful.Resource):
     def get(self, test_id):
-        status = StatusCore(test_id=test_id)
-        run = status.should_i_run()
+        run = run_get(test_id)
         return jsonify(result='Success', run=run)
