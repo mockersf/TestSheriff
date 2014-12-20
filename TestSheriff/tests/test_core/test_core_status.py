@@ -178,3 +178,26 @@ class Test_core_status(object):
         status_jid = Status(base_id=status._id)
         status_get = status_jid.get()
         assert status_get.to_dict() == status.to_dict()
+
+    def test_should_i_run(self):
+        from core.Status import Status
+        test_id = str(uuid.uuid4())
+        test_status1 = 'FAILURE'
+        details = {'browser': random.choice(['Firefox', 'Chrome'])}
+        test_type = str(uuid.uuid4())
+        status1 = Status(test_id, test_type, test_status1, details=details)
+        status1.save_and_update()
+        res = Status(test_id).should_i_run()
+        assert res == False
+        test_id2 = str(uuid.uuid4())
+        test_status2 = 'SUCCESS'
+        status2 = Status(test_id2, test_type, test_status2, details=details)
+        status2.save_and_update()
+        res = Status(test_id).should_i_run()
+        assert res == False
+        test_status3 = 'SUCCESS'
+        test_type = str(uuid.uuid4())
+        status3 = Status(test_id, test_type, test_status3, details=details)
+        status3.save_and_update()
+        res = Status(test_id).should_i_run()
+        assert res == True

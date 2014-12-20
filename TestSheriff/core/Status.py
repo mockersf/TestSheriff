@@ -107,3 +107,20 @@ class Status:
         self.update_last()
         self._last = True
         self.save()
+
+    def should_i_run(self):
+        tt = TestType.from_status(self).get_one()
+        status_list = Status.list({Status._test_id:self._test_id})
+        for field in tt.run:
+            status_list_filtered = []
+            try:
+                condition = eval(field['value'])
+            except:
+                condition = field['value']
+            field_name = eval(field['field'])
+            for status in status_list:
+                if field['operator'] == 'equal':
+                    if status.to_dict()[field_name] == condition:
+                        status_list_filtered.append(status)
+            status_list = status_list_filtered
+        return len(status_list) != 0
