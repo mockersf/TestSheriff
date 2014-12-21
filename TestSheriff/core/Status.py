@@ -127,9 +127,7 @@ class Status:
         status_list = Status.list({Status._test_id:self._test_id})
         status_list_filtered = []
         for status in status_list:
-            print(status)
             if status.check_condition(tt.run):
-                print('{0} match !'.format(status))
                 status_list_filtered.append(status)
         if tt.run_modifier == 'ANY':
             return len(status_list_filtered) != 0

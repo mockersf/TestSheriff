@@ -60,7 +60,6 @@ class Test_api(object):
         json_query = prepare_json_query(data1)
         rv = self.app.post('/v1/statuses', headers=json_query['headers'], data=json_query['json'])
         res_failure = json.loads(rv.data.decode('utf-8'))
-        print('doing the query with argument')
         rv = self.app.get('/v1/tests/{0}?expand=last_status,last_status_success'.format(my_id1))
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
