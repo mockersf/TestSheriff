@@ -96,7 +96,7 @@ class Test_api_test(object):
         res = json.loads(rv.data.decode('utf-8'))
         assert len(res['tests']) == 0
 
-    def test_should_i_run(self):
+    def test_should_i_run_default(self):
         from core.Status import Status
         test_id = str(uuid.uuid4())
         test_status1 = 'FAILURE'

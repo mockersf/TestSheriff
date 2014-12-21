@@ -108,21 +108,38 @@ class Status:
         self._last = True
         self.save()
 
+    def check_condition(self, operator):
+        if operator['operator'] == 'OR':
+            return self.check_condition(operator['part1']) or self.check_condition(operator['part2'])
+        if operator['operator'] == 'AND':
+            return self.check_condition(operator['part1']) and self.check_condition(operator['part2'])
+        try:
+            condition = eval(operator['value'])
+        except:
+            condition = operator['value']
+        field_name = eval(operator['field'])
+        if operator['operator'] == 'EQUAL':
+            return self.to_dict()[field_name] == condition
+        return False
+
     def should_i_run(self):
         tt = TestType.from_status(self).get_one()
         status_list = Status.list({Status._test_id:self._test_id})
-        if len(status_list) == 0:
-            return True
-        for field in tt.run:
-            status_list_filtered = []
-            try:
-                condition = eval(field['value'])
-            except:
-                condition = field['value']
-            field_name = eval(field['field'])
-            for status in status_list:
-                if field['operator'] == 'equal':
-                    if status.to_dict()[field_name] == condition:
-                        status_list_filtered.append(status)
-            status_list = status_list_filtered
-        return len(status_list) != 0
+        status_list_filtered = []
+        for status in status_list:
+            print(status)
+            if status.check_condition(tt.run):
+                print('{0} match !'.format(status))
+                status_list_filtered.append(status)
+        if tt.run_modifier == 'ANY':
+            return len(status_list_filtered) != 0
+        if tt.run_modifier == 'ALL':
+            return len(status_list_filtered) == len(status_list)
+
+    def add_unknown_if_none_exist(self):
+        last = self.get_last()
+        if last is None:
+            self._last = True
+            self._status = 'UNKNOWN'
+            self._on = datetime.datetime.now()
+            self._id = str(Base.Base().insert(self.collection, self.to_dict()))

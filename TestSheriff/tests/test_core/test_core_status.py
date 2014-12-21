@@ -179,7 +179,18 @@ class Test_core_status(object):
         status_get = status_jid.get()
         assert status_get.to_dict() == status.to_dict()
 
-    def test_should_i_run(self):
+    def test_add_unknown_if_none_exists(self):
+        from core.Status import Status
+        test_id = str(uuid.uuid4())
+        status = Status(test_id)
+        assert status.get() == None
+        status.add_unknown_if_none_exist()
+        status_saved = Status(test_id).get()
+        assert status_saved._id != None
+        assert status_saved._last == True
+        assert status_saved._status == 'UNKNOWN'
+
+    def test_should_i_run_default(self):
         from core.Status import Status
         test_id = str(uuid.uuid4())
         test_status1 = 'FAILURE'
@@ -196,8 +207,85 @@ class Test_core_status(object):
         res = Status(test_id).should_i_run()
         assert res == False
         test_status3 = 'SUCCESS'
-        test_type = str(uuid.uuid4())
         status3 = Status(test_id, test_type, test_status3, details=details)
         status3.save_and_update()
         res = Status(test_id).should_i_run()
         assert res == True
+
+    def test_should_i_run_custom_any(self):
+        from core.Status import Status
+        from core.TestType import TestType
+        test_type = str(uuid.uuid4())
+        tt = TestType(test_type)
+        tt._run = {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'UNKNOWN'}
+        tt.save()
+        test_id = str(uuid.uuid4())
+        test_status1 = 'FAILURE'
+        details = {'browser': random.choice(['Firefox', 'Chrome'])}
+        status1 = Status(test_id, test_type, test_status1, details=details)
+        status1.save_and_update()
+        res = Status(test_id).should_i_run()
+        assert res == False
+        test_id2 = str(uuid.uuid4())
+        test_status2 = 'SUCCESS'
+        status2 = Status(test_id2, test_type, test_status2, details=details)
+        status2.save_and_update()
+        res = Status(test_id).should_i_run()
+        assert res == False
+        test_status3 = 'SUCCESS'
+        status3 = Status(test_id, test_type, test_status3, details=details)
+        status3.save_and_update()
+        res = Status(test_id).should_i_run()
+        assert res == False
+        status4 = Status(str(uuid.uuid4()))
+        status4.add_unknown_if_none_exist()
+        res = status4.should_i_run()
+        assert res == True
+
+    def test_should_i_run_custom_all(self):
+        from core.Status import Status
+        from core.TestType import TestType
+        test_type = str(uuid.uuid4())
+        tt = TestType(test_type)
+        tt._run = {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'SUCCESS'}
+        tt._run_modifier = 'ALL'
+        tt.save()
+        test_id = str(uuid.uuid4())
+        test_status1 = 'FAILURE'
+        details = {'browser': random.choice(['Firefox', 'Chrome'])}
+        status1 = Status(test_id, test_type, test_status1, details=details)
+        status1.save_and_update()
+        res = Status(test_id).should_i_run()
+        assert res == False
+        test_id2 = str(uuid.uuid4())
+        test_status2 = 'SUCCESS'
+        status2 = Status(test_id2, test_type, test_status2, details=details)
+        status2.save_and_update()
+        res = Status(test_id).should_i_run()
+        assert res == False
+        test_status3 = 'SUCCESS'
+        status3 = Status(test_id, test_type, test_status3, details=details)
+        status3.save_and_update()
+        res = Status(test_id).should_i_run()
+        assert res == False
+        res = Status(test_id2).should_i_run()
+        assert res == True
+        status2 = Status(test_id2, test_type, test_status2, details=details)
+        status2.save_and_update()
+        res = Status(test_id2).should_i_run()
+        assert res == True
+
+    def test_should_i_run_custom_unknown_operator(self):
+        from core.Status import Status
+        from core.TestType import TestType
+        test_type = str(uuid.uuid4())
+        tt = TestType(test_type)
+        tt._run = {'field': 'Status._status', 'operator': 'NO-OPERATOR', 'value': 'SUCCESS'}
+        tt.save()
+        test_id = str(uuid.uuid4())
+        test_status1 = 'SUCCESS'
+        details = {'browser': random.choice(['Firefox', 'Chrome'])}
+        status1 = Status(test_id, test_type, test_status1, details=details)
+        status1.save_and_update()
+        res = Status(test_id).should_i_run()
+        assert res == False

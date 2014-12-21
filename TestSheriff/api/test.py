@@ -87,6 +87,7 @@ class Test(restful.Resource):
 
 def run_get(test_id):
     status = StatusCore(test_id=test_id)
+    status.add_unknown_if_none_exist()
     run = status.should_i_run()
     return run
 
