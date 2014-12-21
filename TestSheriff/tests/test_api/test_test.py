@@ -122,7 +122,6 @@ class Test_api_test(object):
         test_type = str(uuid.uuid4())
         status3 = Status(test_id, test_type, test_status3, details=details)
         status3.save_and_update()
-        res = Status(test_id).should_i_run()
         rv = self.app_test.get('/test/tests/{0}/run'.format(test_id))
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
@@ -133,3 +132,60 @@ class Test_api_test(object):
         res = json.loads(rv.data.decode('utf-8'))
         assert res['result'] == 'Success'
         assert res['run'] == True
+        rv = self.app_test.get('/test/tests/{0}/run/default'.format(test_id))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        assert res['run'] == True
+
+    def test_should_i_run_custom(self):
+        from core.Status import Status
+        from core.TestType import TestType
+        test_type = str(uuid.uuid4())
+        tt = TestType(test_type)
+        tt._run = {'ALLOK':
+                    {
+                        'condition': {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'SUCCESS'},
+                        'modifier': 'ALL'
+                    }
+                  }
+        tt.save()
+        test_id = str(uuid.uuid4())
+        details = {'browser': 'Firefox'}
+        test_type = str(uuid.uuid4())
+        test_status1 = 'SUCCESS'
+        status1 = Status(test_id, test_type, test_status1, details=details)
+        status1.save_and_update()
+        rv = self.app_test.get('/test/tests/{0}/run/ALLOK'.format(test_id))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        assert res['run'] == True
+        test_status2 = 'FAILURE'
+        status2 = Status(test_id, test_type, test_status2, details=details)
+        status2.save_and_update()
+        rv = self.app_test.get('/test/tests/{0}/run/ALLOK'.format(test_id))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        assert res['run'] == False
+        rv = self.app_test.get('/test/tests/{0}/run'.format(test_id))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        assert res['run'] == False
+        test_status2 = 'SUCCESS'
+        status2 = Status(test_id, test_type, test_status2, details=details)
+        status2.save_and_update()
+        rv = self.app_test.get('/test/tests/{0}/run/ALLOK'.format(test_id))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        assert res['run'] == False
+        rv = self.app_test.get('/test/tests/{0}/run'.format(test_id))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        assert res['run'] == True
+        rv = self.app_test.get('/test/tests/{0}/run/{1}'.format(test_id, str(uuid.uuid4())))
+        assert rv.status_code == 404
