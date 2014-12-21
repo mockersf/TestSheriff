@@ -217,7 +217,12 @@ class Test_core_status(object):
         from core.TestType import TestType
         test_type = str(uuid.uuid4())
         tt = TestType(test_type)
-        tt._run = {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'UNKNOWN'}
+        tt._run = {'default':
+                    {
+                        'condition': {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'UNKNOWN'},
+                        'modifier': 'ANY'
+                    }
+                  }
         tt.save()
         test_id = str(uuid.uuid4())
         test_status1 = 'FAILURE'
@@ -247,8 +252,12 @@ class Test_core_status(object):
         from core.TestType import TestType
         test_type = str(uuid.uuid4())
         tt = TestType(test_type)
-        tt._run = {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'SUCCESS'}
-        tt._run_modifier = 'ALL'
+        tt._run = {'default':
+                    {
+                        'condition': {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'SUCCESS'},
+                        'modifier': 'ALL'
+                    }
+                  }
         tt.save()
         test_id = str(uuid.uuid4())
         test_status1 = 'FAILURE'
@@ -280,12 +289,16 @@ class Test_core_status(object):
         from core.TestType import TestType
         test_type = str(uuid.uuid4())
         tt = TestType(test_type)
-        tt._run = {'field': 'Status._status', 'operator': 'NO-OPERATOR', 'value': 'SUCCESS'}
+        tt._run = {'noop':
+                    {'condition': {'field': 'Status._status', 'operator': 'NO-OPERATOR', 'value': 'SUCCESS'},
+                     'modifier': 'ANY'
+                    }
+                  }
         tt.save()
         test_id = str(uuid.uuid4())
         test_status1 = 'SUCCESS'
         details = {'browser': random.choice(['Firefox', 'Chrome'])}
         status1 = Status(test_id, test_type, test_status1, details=details)
         status1.save_and_update()
-        res = Status(test_id).should_i_run()
+        res = Status(test_id).should_i_run('noop')
         assert res == False

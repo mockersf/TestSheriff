@@ -122,16 +122,18 @@ class Status:
             return self.to_dict()[field_name] == condition
         return False
 
-    def should_i_run(self):
+    def should_i_run(self, run_type='default'):
         tt = TestType.from_status(self).get_one()
+        condition = tt.run(run_type)['condition']
+        modifier = tt.run(run_type)['modifier']
         status_list = Status.list({Status._test_id:self._test_id})
         status_list_filtered = []
         for status in status_list:
-            if status.check_condition(tt.run):
+            if status.check_condition(condition):
                 status_list_filtered.append(status)
-        if tt.run_modifier == 'ANY':
+        if modifier == 'ANY':
             return len(status_list_filtered) != 0
-        if tt.run_modifier == 'ALL':
+        if modifier == 'ALL':
             return len(status_list_filtered) == len(status_list)
 
     def add_unknown_if_none_exist(self):

@@ -102,6 +102,11 @@ class Test_core_testtype(object):
         my_type1 = str(uuid.uuid4())
         doc1 = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
         test_type = TestType(my_type1, doc1)
-        assert test_type.run == test_type._default_run
-        test_type._run = 1
-        assert test_type.run == 1
+        assert test_type.run() == test_type._default_run
+        assert test_type.run('default') == test_type._default_run
+        test_type._run = {'new': 1}
+        assert test_type.run('new') == 1
+        assert test_type.run('default') == test_type._default_run
+        test_type._run['default'] = 2
+        assert test_type.run('default') == 2
+        assert test_type.run('not_existing') == None

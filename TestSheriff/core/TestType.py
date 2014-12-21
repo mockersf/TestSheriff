@@ -12,23 +12,23 @@ class TestType:
     _run = 'run'
     _default_purge = [{'field': 'Status._on', 'operator': 'before', 'value': 'datetime.datetime.now() - datetime.timedelta(days=7)'},
                       {'field': 'Status._last', 'operator': 'not equal', 'value': 'True'}]
-    _default_run = {'operator': 'AND',
-                    'part1': {'field': 'Status._last', 'operator': 'EQUAL', 'value': 'True'},
-                    'part2': {'operator': 'OR',
-                              'part1': {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'SUCCESS'},
-                              'part2': {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'UNKNOWN'},
-                             },
-                   }
-    _run_modifier = 'run_modifier'
-    _default_run_modifier = 'ANY'
+    _default_run = {'modifier': 'ANY',
+                    'condition':
+                           {'operator': 'AND',
+                            'part1': {'field': 'Status._last', 'operator': 'EQUAL', 'value': 'True'},
+                            'part2': {'operator': 'OR',
+                                      'part1': {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'SUCCESS'},
+                                      'part2': {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'UNKNOWN'},
+                                      },
+                            }
+                    }
 
-    def __init__(self, test_type=None, doc_fields=None, doc_fields_to_index=None, purge=None, run=None, run_modifier=None):
+    def __init__(self, test_type=None, doc_fields=None, doc_fields_to_index=None, purge=None, run=None):
         self._test_type = test_type
         self._doc_fields = doc_fields
         self._doc_fields_to_index = doc_fields_to_index
         self._purge = purge
         self._run = run
-        self._run_modifier = run_modifier
 
     def __repr__(self):
         return '<TestType {0} ({1})>'.format(self._test_type, self._doc_fields)
@@ -45,8 +45,6 @@ class TestType:
             dict_of_self[TestType._purge] = self._purge
         if self._run is not None:
             dict_of_self[TestType._run] = self._run
-        if self._run_modifier is not None:
-            dict_of_self[TestType._run_modifier] = self._run_modifier
         return dict_of_self
 
     @staticmethod
@@ -62,8 +60,6 @@ class TestType:
             test_type._purge = test_type_dict[TestType._purge]
         if TestType._run in test_type_dict:
             test_type._run = test_type_dict[TestType._run]
-        if TestType._run_modifier in test_type_dict:
-            test_type._run_modifier = test_type_dict[TestType._run_modifier]
         return test_type
 
     @staticmethod
@@ -88,14 +84,9 @@ class TestType:
         res = Base.Base().get_one(self.collection, query_filter)
         return TestType.from_dict(res) if res is not None else None
 
-    @property
-    def run(self):
-        if self._run is None:
+    def run(self, run_type='default'):
+        if self._run is not None and run_type in self._run:
+            return self._run[run_type]
+        if run_type == 'default':
             return self._default_run
-        return self._run
-
-    @property
-    def run_modifier(self):
-        if self._run_modifier is None:
-            return self._default_run_modifier
-        return self._run_modifier
+        return None
