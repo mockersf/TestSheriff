@@ -124,8 +124,11 @@ class Status:
 
     def should_i_run(self, run_type='default'):
         tt = TestType.from_status(self).get_one()
-        condition = tt.run(run_type)['condition']
-        modifier = tt.run(run_type)['modifier']
+        run = tt.run(run_type)
+        if run is None:
+            return None
+        condition = run['condition']
+        modifier = run['modifier']
         status_list = Status.list({Status._test_id:self._test_id})
         status_list_filtered = []
         for status in status_list:

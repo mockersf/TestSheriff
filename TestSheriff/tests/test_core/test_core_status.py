@@ -284,7 +284,7 @@ class Test_core_status(object):
         res = Status(test_id2).should_i_run()
         assert res == True
 
-    def test_should_i_run_custom_unknown_operator(self):
+    def test_should_i_run_custom_unknown(self):
         from core.Status import Status
         from core.TestType import TestType
         test_type = str(uuid.uuid4())
@@ -302,3 +302,5 @@ class Test_core_status(object):
         status1.save_and_update()
         res = Status(test_id).should_i_run('noop')
         assert res == False
+        res = Status(test_id).should_i_run(str(uuid.uuid4()))
+        assert res == None
