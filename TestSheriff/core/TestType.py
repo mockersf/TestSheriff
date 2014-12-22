@@ -22,6 +22,8 @@ class TestType:
                                       },
                             }
                     }
+    modifiers = ['ANY', 'ALL']
+    operators = ['AND', 'OR', 'EQUAL']
 
     def __init__(self, test_type=None, doc_fields=None, doc_fields_to_index=None, purge=None, run=None):
         self._test_type = test_type
@@ -90,3 +92,9 @@ class TestType:
         if run_type == 'default':
             return self._default_run
         return None
+
+    def add_run_type(self, run_type, modifier, condition):
+        if self._run == None:
+            self._run = {}
+        self._run[run_type] = {'modifier': modifier, 'condition': condition}
+        self.save()

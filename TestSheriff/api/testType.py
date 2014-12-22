@@ -1,4 +1,4 @@
-from flask import jsonify, url_for, abort
+from flask import jsonify, url_for, abort, request
 from flask.ext import restful
 from flask.ext.restful import reqparse
 
@@ -14,16 +14,21 @@ from .tools import add_link_or_expand, new_endpoint
 def add_test_type(api, version='v1', path='test_types'):
     new_endpoint(api, 'test_types', "/{0}/{1}".format(version, path), List, can_expand=False)
     new_endpoint(api, 'test_type', "/{0}/{1}/<test_type>".format(version, path), TestType, can_expand=True, function=testtype_get)
+    new_endpoint(api, 'run', "/{0}/{1}/<test_type>/runs/<run_type>".format(version, path), Run, can_expand=True, function=run_get)
+    new_endpoint(api, 'runs', "/{0}/{1}/<test_type>/runs".format(version, path), RunList, can_expand=True, function=runlist_get)
     new_endpoint(api, 'test_type_indexes', "/{0}/{1}/<test_type>/indexes".format(version, path), IndexList, can_expand=False)
     new_endpoint(api, 'test_type_index', "/{0}/{1}/<test_type>/indexes/<field>".format(version, path), Index, can_expand=False)
 
 
 def prep_test_type(test_type):
     tt_dict = test_type.to_dict()
+    if 'run' in tt_dict:
+        tt_dict.pop('run')
     tt_dict['_links'] = {}
     add_link_or_expand(tt_dict, 'self', 'test_type', test_type=test_type._test_type)
     add_link_or_expand(tt_dict, 'tests', 'tests', test_type=test_type._test_type)
     add_link_or_expand(tt_dict, 'indexes', 'test_type_indexes', test_type=test_type._test_type)
+    add_link_or_expand(tt_dict, 'run_types', 'runs', test_type=test_type._test_type)
     return tt_dict
 
 
@@ -88,3 +93,66 @@ class Index(restful.Resource):
             abort(404)
         index = prep_index(index)
         return jsonify(result='Success', index=index)
+
+
+def run_get(test_type, run_type):
+    testType = TestTypeCore(test_type=test_type).get_one()
+    if testType is None:
+        abort(404)
+    run = testType.run(run_type)
+    if run is None:
+        abort(404)
+    run['_links'] = {}
+    add_link_or_expand(run, 'self', 'run', test_type=test_type, run_type=run_type)
+    return run
+
+
+def runlist_get(test_type):
+    testType = TestTypeCore(test_type=test_type).get_one()
+    if testType is None:
+        abort(404)
+    runs = [] if testType._run is None else [run for run in testType._run]
+    runs.append('default')
+    runs = {run: run_get(test_type, run) for run in runs}
+    return runs
+
+
+class RunList(restful.Resource):
+    def get(self, test_type):
+        runs = runlist_get(test_type)
+        return jsonify(result='Success', runs=runs, count=len(runs))
+    def post(self, test_type):
+        data = request.get_json()
+        run_type = data['run_type']
+        modifier = data['modifier']
+        condition = data['condition']
+        testType = TestTypeCore(test_type=test_type).get_one()
+        if testType is None:
+            abort(404)
+        if modifier not in TestTypeCore.modifiers:
+            abort(400)
+
+        def validate_recur(condition):
+            if condition['operator'] in ['EQUAL']:
+                if 'field' in condition and 'value' in condition:
+                    return True
+            if condition['operator'] in ['AND', 'OR']:
+                if 'part1' not in condition or 'part2' not in condition:
+                    return False
+                if isinstance(condition['part1'], dict):
+                    return validate_recur(condition['part1'])
+                if isinstance(condition['part2'], dict):
+                    return validate_recur(condition['part2'])
+            return False
+
+        if not validate_recur(condition):
+            abort(400)
+        testType.add_run_type(run_type, modifier, condition)
+        run = run_get(test_type, run_type)
+        return jsonify(result='Success', run=run)
+
+
+class Run(restful.Resource):
+    def get(self, test_type, run_type):
+        run = run_get(test_type, run_type)
+        return jsonify(result='Success', run=run)
