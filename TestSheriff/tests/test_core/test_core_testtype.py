@@ -104,9 +104,9 @@ class Test_core_testtype(object):
         test_type = TestType(my_type1, doc1)
         assert test_type.run() == test_type._default_run
         assert test_type.run('default') == test_type._default_run
-        test_type._run = {'new': 1}
-        assert test_type.run('new') == 1
+        test_type.add_run_type('new', 'ANY', 1)
+        assert test_type.run('new') == {'modifier': 'ANY', 'condition': 1}
         assert test_type.run('default') == test_type._default_run
-        test_type._run['default'] = 2
-        assert test_type.run('default') == 2
+        test_type.add_run_type('default', 'ALL', 2)
+        assert test_type.run('default') == {'modifier': 'ALL', 'condition': 2}
         assert test_type.run('not_existing') == None
