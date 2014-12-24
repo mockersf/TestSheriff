@@ -150,3 +150,85 @@ class Test_api_testType(object):
         assert res['test_type']['doc_fields_to_index'] == data1['doc_fields_to_index']
         rv = self.app_test_type.patch('/test/test_types/{0}'.format(str(uuid.uuid4())), headers=json_query['headers'], data=json_query['json'])
         assert rv.status_code == 404
+
+    def test_get_run(self):
+        from core.Status import Status
+        from core.TestType import TestType
+        from core.Base import Base
+        test_id = str(uuid.uuid4())
+        test_status = 'SUCCESS'
+        test_type = str(uuid.uuid4())
+        field1 = 'browser'
+        field2 = 'environment'
+        tt = TestType(test_type, doc_fields_to_index=[field1, field2])
+        tt.add_run_type('new', 'ANY', 1)
+        tt.save()
+        details1 = {field1: 'Firefox', field2: 'master'}
+        status1 = Status(test_id, test_type, test_status, details=details1)
+        status1.save()
+        rv = self.app_test_type.get('/test/test_types/{0}/runs/{1}'.format(str(uuid.uuid4()), 'default'))
+        assert rv.status_code == 404
+        rv = self.app_test_type.get('/test/test_types/{0}/runs/{1}'.format(test_type, str(uuid.uuid4())))
+        assert rv.status_code == 404
+        rv = self.app_test_type.get('/test/test_types/{0}/runs/{1}'.format(test_type, 'default'))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        assert res['run'] == TestType._default_run
+        rv = self.app_test_type.get('/test/test_types/{0}/runs/{1}'.format(test_type, 'new'))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        assert res['run']['modifier'] == 'ANY'
+        assert res['run']['condition'] == 1
+        rv = self.app_test_type.get('/test/test_types/{0}/runs'.format(str(uuid.uuid4())))
+        assert rv.status_code == 404
+        rv = self.app_test_type.get('/test/test_types/{0}/runs'.format(test_type))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        assert res['count'] == 2
+        rv = self.app_test_type.get('/test/test_types/{0}'.format(test_type))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        assert 'run' not in res['test_type']
+
+    def test_post_run(self):
+        from core.Status import Status
+        from core.TestType import TestType
+        from core.Base import Base
+        test_type = str(uuid.uuid4())
+#        field1 = 'browser'
+#        field2 = 'environment'
+        tt = TestType(test_type)#, doc_fields_to_index=[field1, field2])
+        tt.save()
+        my_run = str(uuid.uuid4())
+        data = {'run_type': my_run, 'modifier': 'ANY', 'condition': {'operator': 'EQUAL', 'field': str(uuid.uuid4()), 'value': str(uuid.uuid4())}}
+        json_query = prepare_json_query(data)
+        rv = self.app_test_type.post('/test/test_types/{0}/runs'.format(str(uuid.uuid4())), headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 404
+        data = {'run_type': my_run, 'modifier': str(uuid.uuid4()), 'condition': {'operator': 'EQUAL', 'field': str(uuid.uuid4()), 'value': str(uuid.uuid4())}}
+        json_query = prepare_json_query(data)
+        rv = self.app_test_type.post('/test/test_types/{0}/runs'.format(test_type), headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 400
+        data = {'run_type': my_run, 'modifier': 'ANY', 'condition': {'operator': str(uuid.uuid4()), 'field': str(uuid.uuid4()), 'value': str(uuid.uuid4())}}
+        json_query = prepare_json_query(data)
+        rv = self.app_test_type.post('/test/test_types/{0}/runs'.format(test_type), headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 400
+        data = {'run_type': my_run, 'modifier': 'ANY', 'condition': {'operator': 'OR', 'field': str(uuid.uuid4()), 'value': str(uuid.uuid4())}}
+        json_query = prepare_json_query(data)
+        rv = self.app_test_type.post('/test/test_types/{0}/runs'.format(test_type), headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 400
+        data = {'run_type': my_run, 'modifier': 'ANY', 'condition': {'operator': 'OR', 'part1': str(uuid.uuid4()), 'part2': {'operator': 'EQUAL', 'field': str(uuid.uuid4()), 'value': str(uuid.uuid4())}}}
+        json_query = prepare_json_query(data)
+        rv = self.app_test_type.post('/test/test_types/{0}/runs'.format(test_type), headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 400
+        data = {'run_type': my_run, 'modifier': 'ANY', 'condition': {'operator': 'OR', 'part1': {'operator': 'EQUAL', 'field': str(uuid.uuid4()), 'value': str(uuid.uuid4())}, 'part2': str(uuid.uuid4())}}
+        json_query = prepare_json_query(data)
+        rv = self.app_test_type.post('/test/test_types/{0}/runs'.format(test_type), headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 400
+        data = {'run_type': my_run, 'modifier': 'ALL', 'condition': {'operator': 'EQUAL', 'field': str(uuid.uuid4()), 'value': str(uuid.uuid4())}}
+        json_query = prepare_json_query(data)
+        rv = self.app_test_type.post('/test/test_types/{0}/runs'.format(test_type), headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 200

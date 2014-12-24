@@ -139,10 +139,13 @@ class RunList(restful.Resource):
             if condition['operator'] in ['AND', 'OR']:
                 if 'part1' not in condition or 'part2' not in condition:
                     return False
+                p1 = False
+                p2 = False
                 if isinstance(condition['part1'], dict):
-                    return validate_recur(condition['part1'])
+                    p1 = validate_recur(condition['part1'])
                 if isinstance(condition['part2'], dict):
-                    return validate_recur(condition['part2'])
+                    p2 = validate_recur(condition['part2'])
+                return p1 and p2
             return False
 
         if not validate_recur(condition):
