@@ -108,20 +108,6 @@ class Status:
         self._last = True
         self.save()
 
-    def check_condition(self, operator):
-        if operator['operator'] == 'OR':
-            return self.check_condition(operator['part1']) or self.check_condition(operator['part2'])
-        if operator['operator'] == 'AND':
-            return self.check_condition(operator['part1']) and self.check_condition(operator['part2'])
-        try:
-            condition = eval(operator['value'])
-        except:
-            condition = operator['value']
-        field_name = eval(operator['field'])
-        if operator['operator'] == 'EQUAL':
-            return self.to_dict()[field_name] == condition
-        return False
-
     def should_i_run(self, run_type='default'):
         tt = TestType.from_status(self).get_one()
         run = tt.run(run_type)
@@ -132,7 +118,7 @@ class Status:
         status_list = Status.list({Status._test_id:self._test_id})
         status_list_filtered = []
         for status in status_list:
-            if status.check_condition(condition):
+            if condition.check_status(status):
                 status_list_filtered.append(status)
         if modifier == 'ANY':
             return len(status_list_filtered) != 0

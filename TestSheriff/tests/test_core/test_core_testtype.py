@@ -24,10 +24,9 @@ class Test_core_testtype(object):
         doc = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
         doc_fields_to_index = [doc[0]]
         purge = str(uuid.uuid4())
-        run = str(uuid.uuid4())
-        test_type = TestType(my_type, doc, doc_fields_to_index, purge, run)
+        test_type = TestType(my_type, doc, doc_fields_to_index, purge)
         assert '{0}'.format(test_type) == '<TestType {0} ({1})>'.format(my_type, doc)
-        assert test_type.to_dict() == {'type': my_type, 'doc_fields': doc, 'doc_fields_to_index': [doc[0]], 'purge': purge, 'run': run}
+        assert test_type.to_dict() == {'type': my_type, 'doc_fields': doc, 'doc_fields_to_index': [doc[0]], 'purge': purge}
         test_type2 = TestType.from_dict(test_type.to_dict())
         assert test_type2.to_dict() == test_type.to_dict()
 
@@ -99,14 +98,17 @@ class Test_core_testtype(object):
     def test_run(self):
         from core.TestType import TestType
         from core.Base import Base
+        from core.Filter import Filter
         my_type1 = str(uuid.uuid4())
         doc1 = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
         test_type = TestType(my_type1, doc1)
         assert test_type.run() == test_type._default_run
         assert test_type.run('default') == test_type._default_run
-        test_type.add_run_type('new', 'ANY', 1)
-        assert test_type.run('new') == {'modifier': 'ANY', 'condition': 1}
+        test_type.add_run_type('new', 'ANY', {'operator': 'EQUAL', 'field': 1, 'value': 1})
+        assert test_type.run('new')['modifier'] == 'ANY'
+        assert test_type.run('new')['condition'].to_dict() == {'operator': 'EQUAL', 'field': 1, 'value': 1}
         assert test_type.run('default') == test_type._default_run
-        test_type.add_run_type('default', 'ALL', 2)
-        assert test_type.run('default') == {'modifier': 'ALL', 'condition': 2}
+        test_type.add_run_type('default', 'ALL', {'operator': 'EQUAL', 'field': 2, 'value': 3})
+        assert test_type.run('default')['modifier'] == 'ALL'
+        assert test_type.run('default')['condition'].to_dict() == {'operator': 'EQUAL', 'field': 2, 'value': 3}
         assert test_type.run('not_existing') == None

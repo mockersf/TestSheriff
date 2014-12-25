@@ -143,12 +143,7 @@ class Test_api_test(object):
         from core.TestType import TestType
         test_type = str(uuid.uuid4())
         tt = TestType(test_type)
-        tt._run = {'ALLOK':
-                    {
-                        'condition': {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'SUCCESS'},
-                        'modifier': 'ALL'
-                    }
-                  }
+        tt.add_run_type('ALLOK', 'ALL', {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'SUCCESS'})
         tt.save()
         test_id = str(uuid.uuid4())
         details = {'browser': 'Firefox'}

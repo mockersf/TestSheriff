@@ -1,7 +1,7 @@
 import datetime
 
 from . import Base
-
+from .Filter import Filter
 
 class TestType:
     collection = 'test_type'
@@ -14,23 +14,23 @@ class TestType:
                       {'field': 'Status._last', 'operator': 'not equal', 'value': 'True'}]
     _default_run = {'modifier': 'ANY',
                     'condition':
-                           {'operator': 'AND',
+                           Filter.from_dict({'operator': 'AND',
                             'part1': {'field': 'Status._last', 'operator': 'EQUAL', 'value': 'True'},
                             'part2': {'operator': 'OR',
                                       'part1': {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'SUCCESS'},
                                       'part2': {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'UNKNOWN'},
                                       },
-                            }
+                            })
                     }
     modifiers = ['ANY', 'ALL']
     operators = ['AND', 'OR', 'EQUAL']
 
-    def __init__(self, test_type=None, doc_fields=None, doc_fields_to_index=None, purge=None, run=None):
+    def __init__(self, test_type=None, doc_fields=None, doc_fields_to_index=None, purge=None):
         self._test_type = test_type
         self._doc_fields = doc_fields
         self._doc_fields_to_index = doc_fields_to_index
         self._purge = purge
-        self._run = run
+        self._run = None
 
     def __repr__(self):
         return '<TestType {0} ({1})>'.format(self._test_type, self._doc_fields)
@@ -46,7 +46,7 @@ class TestType:
         if self._purge is not None:
             dict_of_self[TestType._purge] = self._purge
         if self._run is not None:
-            dict_of_self[TestType._run] = self._run
+            dict_of_self[TestType._run] = {run: {'modifier': self._run[run]['modifier'], 'condition': self._run[run]['condition'].to_dict()} for run in self._run}
         return dict_of_self
 
     @staticmethod
@@ -61,7 +61,7 @@ class TestType:
         if TestType._purge in test_type_dict:
             test_type._purge = test_type_dict[TestType._purge]
         if TestType._run in test_type_dict:
-            test_type._run = test_type_dict[TestType._run]
+            test_type._run = {run: {'modifier': test_type_dict[TestType._run][run]['modifier'], 'condition': Filter.from_dict(test_type_dict[TestType._run][run]['condition'])} for run in test_type_dict[TestType._run]}
         return test_type
 
     @staticmethod
@@ -96,5 +96,9 @@ class TestType:
     def add_run_type(self, run_type, modifier, condition):
         if self._run == None:
             self._run = {}
-        self._run[run_type] = {'modifier': modifier, 'condition': condition}
+        condition_filter = Filter.from_dict(condition)
+        if not condition_filter:
+            return False
+        self._run[run_type] = {'modifier': modifier, 'condition': condition_filter}
         self.save()
+        return True

@@ -102,9 +102,11 @@ def run_get(test_type, run_type):
     run = testType.run(run_type)
     if run is None:
         abort(404)
-    run['_links'] = {}
-    add_link_or_expand(run, 'self', 'run', test_type=test_type, run_type=run_type)
-    return run
+    run_dict = {'_links': {}}
+    run_dict['condition'] = run['condition'].to_dict()
+    run_dict['modifier'] = run['modifier']
+    add_link_or_expand(run_dict, 'self', 'run', test_type=test_type, run_type=run_type)
+    return run_dict
 
 
 def runlist_get(test_type):
@@ -131,26 +133,8 @@ class RunList(restful.Resource):
             abort(404)
         if modifier not in TestTypeCore.modifiers:
             abort(400)
-
-        def validate_recur(condition):
-            if condition['operator'] in ['EQUAL']:
-                if 'field' in condition and 'value' in condition:
-                    return True
-            if condition['operator'] in ['AND', 'OR']:
-                if 'part1' not in condition or 'part2' not in condition:
-                    return False
-                p1 = False
-                p2 = False
-                if isinstance(condition['part1'], dict):
-                    p1 = validate_recur(condition['part1'])
-                if isinstance(condition['part2'], dict):
-                    p2 = validate_recur(condition['part2'])
-                return p1 and p2
-            return False
-
-        if not validate_recur(condition):
+        if not testType.add_run_type(run_type, modifier, condition):
             abort(400)
-        testType.add_run_type(run_type, modifier, condition)
         run = run_get(test_type, run_type)
         return jsonify(result='Success', run=run)
 

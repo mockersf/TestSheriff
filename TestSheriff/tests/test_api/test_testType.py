@@ -161,7 +161,7 @@ class Test_api_testType(object):
         field1 = 'browser'
         field2 = 'environment'
         tt = TestType(test_type, doc_fields_to_index=[field1, field2])
-        tt.add_run_type('new', 'ANY', 1)
+        tt.add_run_type('new', 'ANY', {'operator': 'EQUAL', 'field': 1, 'value': 1})
         tt.save()
         details1 = {field1: 'Firefox', field2: 'master'}
         status1 = Status(test_id, test_type, test_status, details=details1)
@@ -174,13 +174,14 @@ class Test_api_testType(object):
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
         assert res['result'] == 'Success'
-        assert res['run'] == TestType._default_run
+        assert res['run']['modifier'] == TestType._default_run['modifier']
+        assert res['run']['condition'] == TestType._default_run['condition'].to_dict()
         rv = self.app_test_type.get('/test/test_types/{0}/runs/{1}'.format(test_type, 'new'))
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
         assert res['result'] == 'Success'
         assert res['run']['modifier'] == 'ANY'
-        assert res['run']['condition'] == 1
+        assert res['run']['condition'] == {'operator': 'EQUAL', 'field': 1, 'value': 1}
         rv = self.app_test_type.get('/test/test_types/{0}/runs'.format(str(uuid.uuid4())))
         assert rv.status_code == 404
         rv = self.app_test_type.get('/test/test_types/{0}/runs'.format(test_type))

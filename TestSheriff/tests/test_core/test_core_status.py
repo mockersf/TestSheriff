@@ -191,13 +191,16 @@ class Test_core_status(object):
         assert status_saved._status == 'UNKNOWN'
 
     def test_should_i_run_default(self):
+        print('test start')
         from core.Status import Status
         test_id = str(uuid.uuid4())
         test_status1 = 'FAILURE'
         details = {'browser': random.choice(['Firefox', 'Chrome'])}
         test_type = str(uuid.uuid4())
         status1 = Status(test_id, test_type, test_status1, details=details)
+        print('status created')
         status1.save_and_update()
+        print('status saved')
         res = Status(test_id).should_i_run()
         assert res == False
         test_id2 = str(uuid.uuid4())
@@ -217,12 +220,7 @@ class Test_core_status(object):
         from core.TestType import TestType
         test_type = str(uuid.uuid4())
         tt = TestType(test_type)
-        tt._run = {'default':
-                    {
-                        'condition': {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'UNKNOWN'},
-                        'modifier': 'ANY'
-                    }
-                  }
+        tt.add_run_type('default', 'ANY', {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'UNKNOWN'})
         tt.save()
         test_id = str(uuid.uuid4())
         test_status1 = 'FAILURE'
@@ -252,12 +250,7 @@ class Test_core_status(object):
         from core.TestType import TestType
         test_type = str(uuid.uuid4())
         tt = TestType(test_type)
-        tt._run = {'default':
-                    {
-                        'condition': {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'SUCCESS'},
-                        'modifier': 'ALL'
-                    }
-                  }
+        tt.add_run_type('default', 'ALL', {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'SUCCESS'})
         tt.save()
         test_id = str(uuid.uuid4())
         test_status1 = 'FAILURE'
@@ -283,24 +276,3 @@ class Test_core_status(object):
         status2.save_and_update()
         res = Status(test_id2).should_i_run()
         assert res == True
-
-    def test_should_i_run_custom_unknown(self):
-        from core.Status import Status
-        from core.TestType import TestType
-        test_type = str(uuid.uuid4())
-        tt = TestType(test_type)
-        tt._run = {'noop':
-                    {'condition': {'field': 'Status._status', 'operator': 'NO-OPERATOR', 'value': 'SUCCESS'},
-                     'modifier': 'ANY'
-                    }
-                  }
-        tt.save()
-        test_id = str(uuid.uuid4())
-        test_status1 = 'SUCCESS'
-        details = {'browser': random.choice(['Firefox', 'Chrome'])}
-        status1 = Status(test_id, test_type, test_status1, details=details)
-        status1.save_and_update()
-        res = Status(test_id).should_i_run('noop')
-        assert res == False
-        res = Status(test_id).should_i_run(str(uuid.uuid4()))
-        assert res == None
