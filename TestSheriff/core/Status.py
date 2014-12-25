@@ -116,10 +116,7 @@ class Status:
         condition = run['condition']
         modifier = run['modifier']
         status_list = Status.list({Status._test_id:self._test_id})
-        status_list_filtered = []
-        for status in status_list:
-            if condition.check_status(status):
-                status_list_filtered.append(status)
+        status_list_filtered = condition.check_statuses(status_list)
         if modifier == 'ANY':
             return len(status_list_filtered) != 0
         if modifier == 'ALL':

@@ -1,9 +1,12 @@
+import datetime
+
 
 class Filter:
     _operator = None
     _part1 = None
     _part2 = None
-    operators = ['OR', 'AND', 'EQUAL']
+    operators_compound = ['OR', 'AND']
+    operators_final = ['EQUAL', 'LESSER THAN', 'GREATER THAN']
 
     def __init__(self, operator=None, part1=None, part2=None):
         self._operator = operator
@@ -20,10 +23,10 @@ class Filter:
         fd = filter_dict
         if 'operator' not in fd:
             return False
-        if fd['operator'] in ['EQUAL']:
+        if fd['operator'] in Filter.operators_final:
             if 'field' in fd and 'value' in fd:
                 return Filter(fd['operator'], fd['field'], fd['value'])
-        if fd['operator'] in ['AND', 'OR']:
+        if fd['operator'] in Filter.operators_compound:
             if 'part1' not in fd or 'part2' not in fd:
                 return False
             p1 = False
@@ -37,9 +40,9 @@ class Filter:
         return False
 
     def to_dict(self):
-        if self._operator in ['EQUAL']:
+        if self._operator in Filter.operators_final:
             return {'operator': self._operator, 'field': self._part1, 'value': self._part2}
-        if self._operator in ['AND', 'OR']:
+        if self._operator in Filter.operators_compound:
             return {'operator': self._operator, 'part1': self._part1.to_dict(), 'part2': self._part2.to_dict()}
 
     def check_status(self, status):
@@ -52,6 +55,24 @@ class Filter:
             condition = eval(self._part2)
         except:
             condition = self._part2
-        field_name = eval(self._part1)
+        field_name = self._part1
+        if field_name[:17] == 'Status._details[\'':
+            value = status.to_dict()[Status._details][field_name[17:-2]]
+        else:
+            field = eval(field_name)
+            if field not in status.to_dict():
+                return False
+            value = status.to_dict()[eval(field_name)]
         if self._operator == 'EQUAL':
-            return status.to_dict()[field_name] == condition
+            return value == condition
+        if self._operator == 'LESSER THAN':
+            return value < condition
+        if self._operator == 'GREATER THAN':
+            return value > condition
+
+    def check_statuses(self, status_list):
+        status_list_filtered = []
+        for status in status_list:
+            if self.check_status(status):
+                status_list_filtered.append(status)
+        return status_list_filtered
