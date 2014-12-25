@@ -6,7 +6,7 @@ class Filter:
     _part1 = None
     _part2 = None
     operators_compound = ['OR', 'AND']
-    operators_final = ['EQUAL', 'LESSER THAN', 'GREATER THAN']
+    operators_final = ['EQUAL', 'NOT EQUAL', 'LESSER THAN', 'GREATER THAN']
 
     def __init__(self, operator=None, part1=None, part2=None):
         self._operator = operator
@@ -65,6 +65,8 @@ class Filter:
             value = status.to_dict()[eval(field_name)]
         if self._operator == 'EQUAL':
             return value == condition
+        if self._operator == 'NOT EQUAL':
+            return value != condition
         if self._operator == 'LESSER THAN':
             return value < condition
         if self._operator == 'GREATER THAN':

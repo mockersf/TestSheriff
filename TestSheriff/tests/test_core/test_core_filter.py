@@ -46,6 +46,19 @@ class Test_core_index(object):
         assert len(status_filter) == 1
         assert status_filter[0]._test_id == s2._test_id
 
+    def test_filter_not_equal(self):
+        from core.Filter import Filter
+        from core.Status import Status
+        my_filter = Filter.from_dict({'operator': 'NOT EQUAL', 'field': 'Status._status', 'value': 'SUCCESS'})
+        assert my_filter != False
+        s1 = Status(str(uuid.uuid4()), str(uuid.uuid4()), 'FAILURE', details={})
+        s2 = Status(str(uuid.uuid4()), str(uuid.uuid4()), 'SUCCESS', details={})
+        assert my_filter.check_status(s1) == True
+        assert my_filter.check_status(s2) == False
+        status_filter = my_filter.check_statuses([s1, s2])
+        assert len(status_filter) == 1
+        assert status_filter[0]._test_id == s1._test_id
+
     def test_filter_lesser_than(self):
         from core.Filter import Filter
         from core.Status import Status
@@ -64,12 +77,12 @@ class Test_core_index(object):
     def test_filter_greater_than(self):
         from core.Filter import Filter
         from core.Status import Status
-        my_filter = Filter.from_dict({'operator': 'GREATER THAN', 'field': 'Status._on', 'value': 'datetime.datetime.now()'})
+        my_filter = Filter.from_dict({'operator': 'GREATER THAN', 'field': 'Status._on', 'value': 'datetime.datetime.now() + datetime.timedelta(days=1)'})
         assert my_filter != False
         s1 = Status(str(uuid.uuid4()), str(uuid.uuid4()), 'FAILURE', details={})
         s1._on = datetime.datetime.now() - datetime.timedelta(seconds=5)
         s2 = Status(str(uuid.uuid4()), str(uuid.uuid4()), 'SUCCESS', details={})
-        s2._on = datetime.datetime.now() + datetime.timedelta(seconds=5)
+        s2._on = datetime.datetime.now() + datetime.timedelta(days=1, seconds=5)
         assert my_filter.check_status(s1) == False
         assert my_filter.check_status(s2) == True
         status_filter = my_filter.check_statuses([s1, s2])
