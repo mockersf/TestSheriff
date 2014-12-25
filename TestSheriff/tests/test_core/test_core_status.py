@@ -3,6 +3,7 @@ import uuid
 import datetime
 import random
 import time
+import bson
 
 from tests import tools
 
@@ -78,6 +79,24 @@ class Test_core_status(object):
         st = Base().get_one(Status.collection, {'test_id': test_id})
         assert st['status'] == 'CUSTOM'
         assert st['details']['original_status'] == test_status
+
+    def test_remove(self):
+        from core.Status import Status
+        from core.Base import Base
+        test_id1 = str(uuid.uuid4())
+        test_status1 = random.choice(['SUCCESS', 'FAILURE'])
+        test_type = str(uuid.uuid4())
+        details = {'browser': random.choice(['Firefox', 'Chrome'])}
+        status1 = Status(test_id1, test_type, test_status1, details=details, last=True)
+        status1.save()
+        test_id2 = str(uuid.uuid4())
+        test_status2 = random.choice(['SUCCESS', 'FAILURE'])
+        status2 = Status(test_id2, test_type, test_status2, details=details, last=True)
+        status2.save()
+        status2.remove()
+        ast = Base().get_all(Status.collection, {})
+        assert len(ast) == 1
+        assert ast[0]['test_id'] == test_id1
 
     def test_update_last(self):
         from core.Status import Status
@@ -191,16 +210,13 @@ class Test_core_status(object):
         assert status_saved._status == 'UNKNOWN'
 
     def test_should_i_run_default(self):
-        print('test start')
         from core.Status import Status
         test_id = str(uuid.uuid4())
         test_status1 = 'FAILURE'
         details = {'browser': random.choice(['Firefox', 'Chrome'])}
         test_type = str(uuid.uuid4())
         status1 = Status(test_id, test_type, test_status1, details=details)
-        print('status created')
         status1.save_and_update()
-        print('status saved')
         res = Status(test_id).should_i_run()
         assert res == False
         test_id2 = str(uuid.uuid4())
@@ -276,3 +292,28 @@ class Test_core_status(object):
         status2.save_and_update()
         res = Status(test_id2).should_i_run()
         assert res == True
+
+    def test_should_i_run_default(self):
+        from core.Status import Status
+        from core.Base import Base
+        test_id = str(uuid.uuid4())
+        test_status1 = 'FAILURE'
+        details = {'browser': random.choice(['Firefox', 'Chrome'])}
+        test_type = str(uuid.uuid4())
+        status1 = Status(test_id, test_type, test_status1, details=details)
+        status1.save_and_update()
+        ast = Base().get_all(Status.collection, {})
+        Base().upsert_by_id(Status.collection, bson.ObjectId(status1._id), {Status._on: datetime.datetime.now() - datetime.timedelta(days=8)})
+        ast = Base().get_all(Status.collection, {})
+        test_id2 = str(uuid.uuid4())
+        test_status2 = 'SUCCESS'
+        status2 = Status(test_id2, test_type, test_status2, details=details)
+        status2.save_and_update()
+        test_status3 = 'SUCCESS'
+        status3 = Status(test_id, test_type, test_status3, details=details)
+        status3.save_and_update()
+        res = status3.purge()
+        assert res['nb_removed'] == 1
+        ast = Base().get_all(Status.collection, {})
+        assert len(ast) == 2
+        assert sorted([str(st['_id']) for st in ast]) == sorted([status2._id, status3._id])

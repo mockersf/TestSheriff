@@ -1,4 +1,5 @@
 import datetime
+import bson
 
 from . import Base
 from .Test import Test
@@ -108,6 +109,9 @@ class Status:
         self._last = True
         self.save()
 
+    def remove(self):
+        Base.Base().remove_by_id(self.collection, bson.ObjectId(self._id))
+
     def should_i_run(self, run_type='default'):
         tt = TestType.from_status(self).get_one()
         run = tt.run(run_type)
@@ -115,12 +119,24 @@ class Status:
             return None
         condition = run['condition']
         modifier = run['modifier']
-        status_list = Status.list({Status._test_id:self._test_id})
+        status_list = Status.list({Status._test_id: self._test_id})
         status_list_filtered = condition.check_statuses(status_list)
         if modifier == 'ANY':
             return len(status_list_filtered) != 0
         if modifier == 'ALL':
             return len(status_list_filtered) == len(status_list)
+
+    def purge(self):
+        tt = TestType.from_status(self).get_one()
+        run = tt.purge()
+        condition = run['condition']
+        action = run['action']
+        status_list = Status.list({Status._test_id: self._test_id})
+        status_list_filtered = condition.check_statuses(status_list)
+        if action == 'REMOVE':
+            for status in status_list_filtered:
+                status.remove()
+            return {'nb_removed': len(status_list_filtered)}
 
     def add_unknown_if_none_exist(self):
         last = self.get_last()

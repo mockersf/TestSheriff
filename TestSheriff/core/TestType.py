@@ -12,6 +12,13 @@ class TestType:
     _run = 'run'
     _default_purge = [{'field': 'Status._on', 'operator': 'before', 'value': 'datetime.datetime.now() - datetime.timedelta(days=7)'},
                       {'field': 'Status._last', 'operator': 'not equal', 'value': 'True'}]
+    _default_purge = {'action': 'REMOVE',
+                      'condition':
+                           Filter.from_dict({'operator': 'AND',
+                            'part1': {'field': 'Status._last', 'operator': 'NOT EQUAL', 'value': 'True'},
+                            'part2': {'field': 'Status._on', 'operator': 'LESSER THAN', 'value': 'datetime.datetime.now() - datetime.timedelta(days=7)'}
+                            })
+                    }
     _default_run = {'modifier': 'ANY',
                     'condition':
                            Filter.from_dict({'operator': 'AND',
@@ -25,11 +32,11 @@ class TestType:
     modifiers = ['ANY', 'ALL']
     operators = ['AND', 'OR', 'EQUAL']
 
-    def __init__(self, test_type=None, doc_fields=None, doc_fields_to_index=None, purge=None):
+    def __init__(self, test_type=None, doc_fields=None, doc_fields_to_index=None):
         self._test_type = test_type
         self._doc_fields = doc_fields
         self._doc_fields_to_index = doc_fields_to_index
-        self._purge = purge
+        self._purge = None
         self._run = None
 
     def __repr__(self):
@@ -44,7 +51,7 @@ class TestType:
         if self._doc_fields_to_index is not None:
             dict_of_self[TestType._doc_fields_to_index] = self._doc_fields_to_index
         if self._purge is not None:
-            dict_of_self[TestType._purge] = self._purge
+            dict_of_self[TestType._purge] = {'action': self._purge['action'], 'condition': self._purge['condition'].to_dict()}
         if self._run is not None:
             dict_of_self[TestType._run] = {run: {'modifier': self._run[run]['modifier'], 'condition': self._run[run]['condition'].to_dict()} for run in self._run}
         return dict_of_self
@@ -59,7 +66,7 @@ class TestType:
         if TestType._doc_fields_to_index in test_type_dict:
             test_type._doc_fields_to_index = test_type_dict[TestType._doc_fields_to_index]
         if TestType._purge in test_type_dict:
-            test_type._purge = test_type_dict[TestType._purge]
+            test_type._purge = {'action': test_type_dict[TestType._purge]['action'], 'condition': Filter.from_dict(test_type_dict[TestType._purge]['condition'])}
         if TestType._run in test_type_dict:
             test_type._run = {run: {'modifier': test_type_dict[TestType._run][run]['modifier'], 'condition': Filter.from_dict(test_type_dict[TestType._run][run]['condition'])} for run in test_type_dict[TestType._run]}
         return test_type
@@ -100,5 +107,18 @@ class TestType:
         if not condition_filter:
             return False
         self._run[run_type] = {'modifier': modifier, 'condition': condition_filter}
+        self.save()
+        return True
+
+    def purge(self):
+        if self._purge is not None:
+            return self._purge
+        return self._default_purge
+
+    def set_purge(self, action, condition):
+        condition_filter = Filter.from_dict(condition)
+        if not condition_filter:
+            return False
+        self._purge = {'action': action, 'condition': condition_filter}
         self.save()
         return True
