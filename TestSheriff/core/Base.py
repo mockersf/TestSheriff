@@ -40,3 +40,7 @@ class Base:
     def update(self, collection, object_to_update, updated):
         res = self._base[collection].update(object_to_update, {'$set': updated})
         return res['err'] is None
+
+    def remove_by_id(self, collection, object_id):
+        res = self._base[collection].remove({'_id': object_id})
+        return res['err'] is None

@@ -25,6 +25,15 @@ class Test_core_base(object):
         assert len(aob) == 1
         assert aob[0] == {'_id': object_id}
 
+    def test_remove_by_id(self):
+        object_id = str(uuid.uuid4())
+        res = self._base.upsert_by_id(self._test_collection_name, object_id, {})
+        aob = [ob for ob in self._test_collection.find({})]
+        assert len(aob) == 1
+        res = self._base.remove_by_id(self._test_collection_name, object_id)
+        aob = [ob for ob in self._test_collection.find({})]
+        assert len(aob) == 0
+
     def test_multiple_upsert_by_id(self):
         object_id1 = str(uuid.uuid4())
         object_id2 = str(uuid.uuid4())
