@@ -10,6 +10,8 @@ from random import randint
 from flask import Flask, url_for
 from flask.ext import restful
 
+from tests import tools
+
 
 def setup_module(module):
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
@@ -38,15 +40,7 @@ class Test_api_status(object):
         self.app_status = app.test_client()
 
     def teardown_method(self, method):
-        from core import Base
-        from core.Index import Index
-        from core.Test import Test
-        from core.Status import Status
-        from core.TestType import TestType
-        Base.Base().get_base()[Index.collection].drop()
-        Base.Base().get_base()[Test.collection].drop()
-        Base.Base().get_base()[Status.collection].drop()
-        Base.Base().get_base()[TestType.collection].drop()
+        tools.db_drop()
 
     def test_post_collection(self):
         my_id1 = str(uuid.uuid4())
@@ -77,6 +71,19 @@ class Test_api_status(object):
         assert res['status']['details'] == data1['details']
         assert res['status']['status'] == 'SUCCESS'
         assert res['status']['_links']['self'] == {'href': '/test/statuses/{0}'.format(res1['status']['_id'])}
+
+    def test_delete(self):
+        my_id1 = str(uuid.uuid4())
+        data1 = {'test_id': my_id1, 'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
+        json_query = prepare_json_query(data1)
+        rv = self.app_status.post('/test/statuses', headers=json_query['headers'], data=json_query['json'])
+        res1 = json.loads(rv.data.decode('utf-8'))
+        rv = self.app_status.delete('/test/statuses/{0}'.format(res1['status']['_id']))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        rv = self.app_status.get('/test/statuses/{0}'.format(res1['status']['_id']))
+        assert rv.status_code == 404
 
     def test_list(self):
         my_id1 = str(uuid.uuid4())

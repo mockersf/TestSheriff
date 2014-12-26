@@ -53,3 +53,6 @@ class Status(restful.Resource):
     def get(self, status_id):
         status = status_get(status_id)
         return jsonify(result='Success', status=status)
+    def delete(self, status_id):
+        status = StatusCore(base_id=status_id).remove()
+        return jsonify(result='Success')
