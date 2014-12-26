@@ -103,11 +103,19 @@ class Test_core_testtype(object):
         test_type = TestType(my_type1, doc1)
         assert test_type.run() == test_type._default_run
         assert test_type.run('default') == test_type._default_run
-        test_type.add_run_type('new', 'ANY', {'operator': 'EQUAL', 'field': 1, 'value': 1})
+        modifier = str(uuid.uuid4())
+        res = test_type.add_run_type('new', modifier, {'operator': 'EQUAL', 'field': 1, 'value': 1})
+        assert res == False
+        assert test_type.run('new') == None
+        modifier = 'ANY'
+        res = test_type.add_run_type('new', modifier, {'operator': 'EQUAL', 'field': 1, 'value': 1})
+        assert res
         assert test_type.run('new')['modifier'] == 'ANY'
         assert test_type.run('new')['condition'].to_dict() == {'operator': 'EQUAL', 'field': 1, 'value': 1}
         assert test_type.run('default') == test_type._default_run
-        test_type.add_run_type('default', 'ALL', {'operator': 'EQUAL', 'field': 2, 'value': 3})
+        modifier = 'ALL'
+        res = test_type.add_run_type('default', modifier, {'operator': 'EQUAL', 'field': 2, 'value': 3})
+        assert res
         assert test_type.run('default')['modifier'] == 'ALL'
         assert test_type.run('default')['condition'].to_dict() == {'operator': 'EQUAL', 'field': 2, 'value': 3}
         assert test_type.run('not_existing') == None
@@ -122,8 +130,13 @@ class Test_core_testtype(object):
         assert test_type.purge() == test_type._default_purge
         assert test_type.set_purge('REMOVE', {'operator': str(uuid.uuid4()), 'field': 1, 'value': 1}) == False
         condition = {'operator': 'EQUAL', 'field': 1, 'value': 1}
+        action = str(uuid.uuid4())
+        res = test_type.set_purge(action, condition)
+        assert res == False
+        assert test_type.purge() == test_type._default_purge
         action = 'REMOVE'
-        test_type.set_purge(action, condition)
+        res = test_type.set_purge(action, condition)
+        assert res
         assert test_type.to_dict()['purge']['action'] == action
         assert test_type.to_dict()['purge']['condition'] == condition
         test_type2 = TestType.from_dict(test_type.to_dict())

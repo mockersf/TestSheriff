@@ -233,3 +233,62 @@ class Test_api_testType(object):
         json_query = prepare_json_query(data)
         rv = self.app_test_type.post('/test/test_types/{0}/runs'.format(test_type), headers=json_query['headers'], data=json_query['json'])
         assert rv.status_code == 200
+
+    def test_get_purge(self):
+        from core.Status import Status
+        from core.TestType import TestType
+        from core.Base import Base
+        test_id = str(uuid.uuid4())
+        test_status = 'SUCCESS'
+        test_type = str(uuid.uuid4())
+        field1 = 'browser'
+        field2 = 'environment'
+        tt = TestType(test_type, doc_fields_to_index=[field1, field2])
+        tt.save()
+        details1 = {field1: 'Firefox', field2: 'master'}
+        status1 = Status(test_id, test_type, test_status, details=details1)
+        status1.save()
+        rv = self.app_test_type.get('/test/test_types/{0}/purge'.format(str(uuid.uuid4())))
+        assert rv.status_code == 404
+        rv = self.app_test_type.get('/test/test_types/{0}/purge'.format(test_type))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        assert res['purge']['action'] == TestType._default_purge['action']
+        assert res['purge']['condition'] == TestType._default_purge['condition'].to_dict()
+
+    def test_post_purge(self):
+        from core.Status import Status
+        from core.TestType import TestType
+        from core.Base import Base
+        test_type = str(uuid.uuid4())
+        tt = TestType(test_type)
+        tt.save()
+        my_run = str(uuid.uuid4())
+        data = {'action': 'REMOVE', 'condition': {'operator': 'EQUAL', 'field': str(uuid.uuid4()), 'value': str(uuid.uuid4())}}
+        json_query = prepare_json_query(data)
+        rv = self.app_test_type.post('/test/test_types/{0}/purge'.format(str(uuid.uuid4())), headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 404
+        data = {'action': str(uuid.uuid4()), 'condition': {'operator': 'EQUAL', 'field': str(uuid.uuid4()), 'value': str(uuid.uuid4())}}
+        json_query = prepare_json_query(data)
+        rv = self.app_test_type.post('/test/test_types/{0}/purge'.format(test_type), headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 400
+        data = {'action': 'REMOVE', 'condition': {'operator': str(uuid.uuid4()), 'field': str(uuid.uuid4()), 'value': str(uuid.uuid4())}}
+        json_query = prepare_json_query(data)
+        rv = self.app_test_type.post('/test/test_types/{0}/purge'.format(test_type), headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 400
+        data = {'action': 'REMOVE', 'condition': {'operator': 'EQUAL', 'field': str(uuid.uuid4()), 'value': str(uuid.uuid4())}}
+        json_query = prepare_json_query(data)
+        rv = self.app_test_type.post('/test/test_types/{0}/purge'.format(test_type), headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 200
+        rv = self.app_test_type.get('/test/test_types/{0}/purge'.format(test_type))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        assert res['purge']['action'] == data['action']
+        assert res['purge']['condition'] == data['condition']
+        rv = self.app_test_type.get('/test/test_types/{0}'.format(test_type))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        assert res['test_type']['purge'] == '/test/test_types/{0}/purge'.format(test_type)

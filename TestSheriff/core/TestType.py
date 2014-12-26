@@ -30,7 +30,7 @@ class TestType:
                             })
                     }
     modifiers = ['ANY', 'ALL']
-    operators = ['AND', 'OR', 'EQUAL']
+    actions = ['REMOVE']
 
     def __init__(self, test_type=None, doc_fields=None, doc_fields_to_index=None):
         self._test_type = test_type
@@ -101,6 +101,8 @@ class TestType:
         return None
 
     def add_run_type(self, run_type, modifier, condition):
+        if modifier not in TestType.modifiers:
+            return False
         if self._run == None:
             self._run = {}
         condition_filter = Filter.from_dict(condition)
@@ -116,6 +118,8 @@ class TestType:
         return self._default_purge
 
     def set_purge(self, action, condition):
+        if action not in TestType.actions:
+            return False
         condition_filter = Filter.from_dict(condition)
         if not condition_filter:
             return False

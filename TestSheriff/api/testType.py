@@ -16,6 +16,7 @@ def add_test_type(api, version='v1', path='test_types'):
     new_endpoint(api, 'test_type', "/{0}/{1}/<test_type>".format(version, path), TestType, can_expand=True, function=testtype_get)
     new_endpoint(api, 'run', "/{0}/{1}/<test_type>/runs/<run_type>".format(version, path), Run, can_expand=True, function=run_get)
     new_endpoint(api, 'runs', "/{0}/{1}/<test_type>/runs".format(version, path), RunList, can_expand=True, function=runlist_get)
+    new_endpoint(api, 'purge', "/{0}/{1}/<test_type>/purge".format(version, path), Purge, can_expand=True, function=purge_get)
     new_endpoint(api, 'test_type_indexes', "/{0}/{1}/<test_type>/indexes".format(version, path), IndexList, can_expand=False)
     new_endpoint(api, 'test_type_index', "/{0}/{1}/<test_type>/indexes/<field>".format(version, path), Index, can_expand=False)
 
@@ -24,11 +25,14 @@ def prep_test_type(test_type):
     tt_dict = test_type.to_dict()
     if 'run' in tt_dict:
         tt_dict.pop('run')
+    if 'purge' in tt_dict:
+        tt_dict.pop('purge')
     tt_dict['_links'] = {}
     add_link_or_expand(tt_dict, 'self', 'test_type', test_type=test_type._test_type)
     add_link_or_expand(tt_dict, 'tests', 'tests', test_type=test_type._test_type)
     add_link_or_expand(tt_dict, 'indexes', 'test_type_indexes', test_type=test_type._test_type)
     add_link_or_expand(tt_dict, 'run_types', 'runs', test_type=test_type._test_type)
+    add_link_or_expand(tt_dict, 'purge', 'purge', test_type=test_type._test_type)
     return tt_dict
 
 
@@ -143,3 +147,34 @@ class Run(restful.Resource):
     def get(self, test_type, run_type):
         run = run_get(test_type, run_type)
         return jsonify(result='Success', run=run)
+
+
+def purge_get(test_type):
+    testType = TestTypeCore(test_type=test_type).get_one()
+    if testType is None:
+        abort(404)
+    purge = testType.purge()
+    purge_dict = {'_links': {}}
+    purge_dict['condition'] = purge['condition'].to_dict()
+    purge_dict['action'] = purge['action']
+    add_link_or_expand(purge_dict, 'self', 'purge', test_type=test_type)
+    return purge_dict
+
+
+class Purge(restful.Resource):
+    def get(self, test_type):
+        purge = purge_get(test_type)
+        return jsonify(result='Success', purge=purge)
+    def post(self, test_type):
+        data = request.get_json()
+        action = data['action']
+        condition = data['condition']
+        testType = TestTypeCore(test_type=test_type).get_one()
+        if testType is None:
+            abort(404)
+        if action not in TestTypeCore.actions:
+            abort(400)
+        if not testType.set_purge(action, condition):
+            abort(400)
+        purge = purge_get(test_type)
+        return jsonify(result='Success', purge=purge)
