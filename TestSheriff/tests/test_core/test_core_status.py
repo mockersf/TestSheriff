@@ -293,7 +293,7 @@ class Test_core_status(object):
         res = Status(test_id2).should_i_run()
         assert res == True
 
-    def test_should_i_run_default(self):
+    def test_purge(self):
         from core.Status import Status
         from core.Base import Base
         test_id = str(uuid.uuid4())

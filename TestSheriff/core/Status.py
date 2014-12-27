@@ -128,6 +128,8 @@ class Status:
 
     def purge(self):
         tt = TestType.from_status(self).get_one()
+        if tt is None:
+            return {'nb_removed': 0}
         run = tt.purge()
         condition = run['condition']
         action = run['action']

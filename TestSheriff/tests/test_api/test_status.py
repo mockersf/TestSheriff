@@ -6,6 +6,7 @@ import datetime
 import uuid
 from bson.objectid import ObjectId
 from random import randint
+import bson
 
 from flask import Flask, url_for
 from flask.ext import restful
@@ -54,7 +55,7 @@ class Test_api_status(object):
         rv = self.app_status.get(res1['status']['_links']['self']['href'])
         assert rv.status_code == 200
         res2 = json.loads(rv.data.decode('utf-8'))
-        assert res2 == res1
+        assert res2['status'] == res1['status']
 
     def test_get(self):
         my_id1 = str(uuid.uuid4())
@@ -116,3 +117,34 @@ class Test_api_status(object):
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
         assert res['count'] == 2
+
+    def test_post_collection_purge(self):
+        from core.Status import Status
+        from core.Base import Base
+        my_id1 = str(uuid.uuid4())
+        data1 = {'test_id': my_id1, 'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
+        json_query = prepare_json_query(data1)
+        rv = self.app_status.post('/test/statuses', headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 200
+        res1 = json.loads(rv.data.decode('utf-8'))
+        assert res1['result'] == 'Success'
+        assert res1['status']['details'] == data1['details']
+        assert res1['purge'] == {'nb_removed': 0}
+        rv = self.app_status.post('/test/statuses', headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 200
+        res2 = json.loads(rv.data.decode('utf-8'))
+        assert res2['result'] == 'Success'
+        assert res2['purge'] == {'nb_removed': 0}
+        Base().upsert_by_id(Status.collection, bson.ObjectId(res1['status']['_id']), {Status._on: datetime.datetime.now() - datetime.timedelta(days=8)})
+        rv = self.app_status.post('/test/statuses?purge=zut', headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 400
+        rv = self.app_status.post('/test/statuses?purge=false', headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 200
+        res2 = json.loads(rv.data.decode('utf-8'))
+        assert res2['result'] == 'Success'
+        assert res2['purge'] == None
+        rv = self.app_status.post('/test/statuses?purge=True', headers=json_query['headers'], data=json_query['json'])
+        assert rv.status_code == 200
+        res2 = json.loads(rv.data.decode('utf-8'))
+        assert res2['result'] == 'Success'
+        assert res2['purge'] == {'nb_removed': 1}

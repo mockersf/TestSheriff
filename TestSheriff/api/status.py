@@ -33,12 +33,27 @@ class List(restful.Resource):
         statuses = [prep_status(status) for status in statuses]
         return jsonify(result='Success', statuses=statuses, count=len(statuses))
     def post(self):
+        purge_result = None
+        parser = reqparse.RequestParser()
+        parser.add_argument('purge', help='Do we purge ?', required=False, location='args')
+        args = parser.parse_args()
+        purge = True
+        if args['purge'] is not None:
+            print('argparse : {0}'.format(args['purge']))
+            if args['purge'].lower() == 'false':
+                purge = False
+            elif args['purge'].lower() == 'true':
+                purge = True
+            else:
+                abort(400)
         data = request.get_json()
         status = StatusCore(test_id=data['test_id'], test_type=data['type'],
                             status=data['status'], details=data['details'])
+        if purge:
+            purge_result = status.purge()
         status.save_and_update()
         status = prep_status(status)
-        return jsonify(result='Success', status=status)
+        return jsonify(result='Success', status=status, purge=purge_result)
 
 
 def status_get(status_id):
