@@ -184,3 +184,32 @@ class Test_api_test(object):
         assert res['run'] == True
         rv = self.app_test.get('/test/tests/{0}/run/{1}'.format(test_id, str(uuid.uuid4())))
         assert rv.status_code == 404
+
+    def test_purge(self):
+        from core.Status import Status
+        from core.Base import Base
+        test_id = str(uuid.uuid4())
+        test_status1 = 'FAILURE'
+        details = {'browser': 'Firefox'}
+        test_type = str(uuid.uuid4())
+        status1 = Status(test_id, test_type, test_status1, details=details)
+        status1.save_and_update()
+        rv = self.app_test.get('/test/tests/{0}/purge'.format(test_id))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        assert res['purge'] == {'nb_removed': 0}
+        status_count = Status.list({Status._test_id: test_id})
+        assert len(status_count) == 1
+        Base().upsert_by_id(Status.collection, ObjectId(status1._id), {Status._on: datetime.datetime.now() - datetime.timedelta(days=8)})
+        status2 = Status(test_id, test_type, test_status1, details=details)
+        status2.save_and_update()
+        status_count = Status.list({Status._test_id: test_id})
+        assert len(status_count) == 2
+        rv = self.app_test.get('/test/tests/{0}/purge'.format(test_id))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['result'] == 'Success'
+        assert res['purge'] == {'nb_removed': 1}
+        status_count = Status.list({Status._test_id: test_id})
+        assert len(status_count) == 1

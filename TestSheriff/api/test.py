@@ -13,6 +13,7 @@ def add_test(api, version='v1', path='tests'):
     new_endpoint(api, 'tests', "/{0}/{1}".format(version, path), List, can_expand=True, function=list_get)
     new_endpoint(api, 'test', "/{0}/{1}/<test_id>".format(version, path), Test, can_expand=True, function=test_get)
     new_endpoint(api, 'test_run', "/{0}/{1}/<test_id>/run".format(version, path), Run, can_expand=True, function=run_get)
+    new_endpoint(api, 'test_purge', "/{0}/{1}/<test_id>/purge".format(version, path), Purge, can_expand=False)
     new_endpoint(api, 'test_run_type', "/{0}/{1}/<test_id>/run/<run_type>".format(version, path), RunType, can_expand=True, function=run_get)
 
 
@@ -105,3 +106,11 @@ class RunType(restful.Resource):
     def get(self, test_id, run_type):
         run = run_get(test_id, run_type)
         return jsonify(result='Success', run=run)
+
+
+class Purge(restful.Resource):
+    def get(self, test_id):
+        status = StatusCore(test_id=test_id)
+        status.add_unknown_if_none_exist()
+        result = status.purge()
+        return jsonify(result='Success', purge=result)
