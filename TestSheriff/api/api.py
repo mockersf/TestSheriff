@@ -25,18 +25,20 @@ from TestSheriff_flask import app
 app.json_encoder = CustomJSONEncoder
 api = restful.Api(app)
 
+api_root = '/api'
+
 
 from . import status
-status.add_status(api)
+status.add_status(api, root=api_root + '/')
 from . import test
-test.add_test(api)
+test.add_test(api, root=api_root + '/')
 from . import testType
-testType.add_test_type(api)
+testType.add_test_type(api, root=api_root + '/')
 
 
-@app.route('/', methods=['GET'])
-def index():
-    links = {'self': {'href': url_for('index')},
+@app.route(api_root, methods=['GET'])
+def api_index():
+    links = {'self': {'href': url_for('api_index')},
              'statuses': {'href': api.url_for(status.List)},
              'tests': {'href': api.url_for(test.List)},
              'test types': {'href': api.url_for(testType.List)},

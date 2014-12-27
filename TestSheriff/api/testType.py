@@ -11,14 +11,14 @@ from core import Base
 from .tools import add_link_or_expand, new_endpoint
 
 
-def add_test_type(api, version='v1', path='test_types'):
-    new_endpoint(api, 'test_types', "/{0}/{1}".format(version, path), List, can_expand=False)
-    new_endpoint(api, 'test_type', "/{0}/{1}/<test_type>".format(version, path), TestType, can_expand=True, function=testtype_get)
-    new_endpoint(api, 'run', "/{0}/{1}/<test_type>/runs/<run_type>".format(version, path), Run, can_expand=True, function=run_get)
-    new_endpoint(api, 'runs', "/{0}/{1}/<test_type>/runs".format(version, path), RunList, can_expand=True, function=runlist_get)
-    new_endpoint(api, 'purge', "/{0}/{1}/<test_type>/purge".format(version, path), Purge, can_expand=True, function=purge_get)
-    new_endpoint(api, 'test_type_indexes', "/{0}/{1}/<test_type>/indexes".format(version, path), IndexList, can_expand=False)
-    new_endpoint(api, 'test_type_index', "/{0}/{1}/<test_type>/indexes/<field>".format(version, path), Index, can_expand=False)
+def add_test_type(api, root='/api/', version='v1', path='test_types'):
+    new_endpoint(api, 'test_types', "{0}{1}/{2}".format(root, version, path), List, can_expand=False)
+    new_endpoint(api, 'test_type', "{0}{1}/{2}/<test_type>".format(root, version, path), TestType, can_expand=True, function=testtype_get)
+    new_endpoint(api, 'run', "{0}{1}/{2}/<test_type>/runs/<run_type>".format(root, version, path), Run, can_expand=True, function=run_get)
+    new_endpoint(api, 'runs', "{0}{1}/{2}/<test_type>/runs".format(root, version, path), RunList, can_expand=True, function=runlist_get)
+    new_endpoint(api, 'purge', "{0}{1}/{2}/<test_type>/purge".format(root, version, path), Purge, can_expand=True, function=purge_get)
+    new_endpoint(api, 'test_type_indexes', "{0}{1}/{2}/<test_type>/indexes".format(root, version, path), IndexList, can_expand=False)
+    new_endpoint(api, 'test_type_index', "{0}{1}/{2}/<test_type>/indexes/<field>".format(root, version, path), Index, can_expand=False)
 
 
 def prep_test_type(test_type):

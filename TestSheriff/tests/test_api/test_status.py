@@ -37,7 +37,7 @@ class Test_api_status(object):
         app = Flask(__name__)
         app_api = restful.Api(app)
         import api.status
-        api.status.add_status(app_api, version='test')
+        api.status.add_status(app_api, root='/', version='test')
         self.app_status = app.test_client()
 
     def teardown_method(self, method):

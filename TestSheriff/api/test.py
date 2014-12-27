@@ -9,12 +9,13 @@ from core import Base
 from .tools import add_link_or_expand, new_endpoint
 
 
-def add_test(api, version='v1', path='tests'):
-    new_endpoint(api, 'tests', "/{0}/{1}".format(version, path), List, can_expand=True, function=list_get)
-    new_endpoint(api, 'test', "/{0}/{1}/<test_id>".format(version, path), Test, can_expand=True, function=test_get)
-    new_endpoint(api, 'test_run', "/{0}/{1}/<test_id>/run".format(version, path), Run, can_expand=True, function=run_get)
-    new_endpoint(api, 'test_purge', "/{0}/{1}/<test_id>/purge".format(version, path), Purge, can_expand=False)
-    new_endpoint(api, 'test_run_type', "/{0}/{1}/<test_id>/run/<run_type>".format(version, path), RunType, can_expand=True, function=run_get)
+def add_test(api, root='/api/', version='v1', path='tests'):
+    "{0}{1}/{2}".format(root, version, path)
+    new_endpoint(api, 'tests', "{0}{1}/{2}".format(root, version, path), List, can_expand=True, function=list_get)
+    new_endpoint(api, 'test', "{0}{1}/{2}/<test_id>".format(root, version, path), Test, can_expand=True, function=test_get)
+    new_endpoint(api, 'test_run', "{0}{1}/{2}/<test_id>/run".format(root, version, path), Run, can_expand=True, function=run_get)
+    new_endpoint(api, 'test_purge', "{0}{1}/{2}/<test_id>/purge".format(root, version, path), Purge, can_expand=False)
+    new_endpoint(api, 'test_run_type', "{0}{1}/{2}/<test_id>/run/<run_type>".format(root, version, path), RunType, can_expand=True, function=run_get)
 
 
 def prep_test(test, statuses={}):

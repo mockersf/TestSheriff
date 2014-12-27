@@ -38,7 +38,7 @@ class Test_api_testType(object):
         app = Flask(__name__)
         app_api = restful.Api(app)
         import api.testType
-        api.testType.add_test_type(app_api, version='test')
+        api.testType.add_test_type(app_api, root='/', version='test')
         self.app_test_type = app.test_client()
 
     def teardown_method(self, method):

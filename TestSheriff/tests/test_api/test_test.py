@@ -34,7 +34,7 @@ class Test_api_test(object):
         app = Flask(__name__)
         app_api = restful.Api(app)
         import api.test
-        api.test.add_test(app_api, version='test')
+        api.test.add_test(app_api, root='/', version='test')
         self.app_test = app.test_client()
 
     def teardown_method(self, method):

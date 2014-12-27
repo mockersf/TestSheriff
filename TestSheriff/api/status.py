@@ -8,9 +8,9 @@ from core import Base
 from .tools import add_link_or_expand, new_endpoint
 
 
-def add_status(api, version='v1', path='statuses'):
-    new_endpoint(api, 'statuses', "/{0}/{1}".format(version, path), List, can_expand=False)
-    new_endpoint(api, 'status', "/{0}/{1}/<status_id>".format(version, path), Status, can_expand=True, function=status_get)
+def add_status(api, root='/api/', version='v1', path='statuses'):
+    new_endpoint(api, 'statuses', "{0}{1}/{2}".format(root, version, path), List, can_expand=False)
+    new_endpoint(api, 'status', "{0}{1}/{2}/<status_id>".format(root, version, path), Status, can_expand=True, function=status_get)
 
 
 def prep_status(status):

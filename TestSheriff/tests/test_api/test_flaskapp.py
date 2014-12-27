@@ -78,12 +78,12 @@ class Test_api(object):
     def test_index(self):
         from api import api
         my_app = api.app
-        rv = my_app.test_client().get('/')
+        rv = my_app.test_client().get('/api')
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
         assert res['result'] == 'Success'
-        assert res['_links'] == {'self': {'href': '/'},
-                                 'statuses': {'href': '/v1/statuses'},
-                                 'tests': {'href': '/v1/tests'},
-                                 'test types': {'href': '/v1/test_types'},
+        assert res['_links'] == {'self': {'href': '/api'},
+                                 'statuses': {'href': '/api/v1/statuses'},
+                                 'tests': {'href': '/api/v1/tests'},
+                                 'test types': {'href': '/api/v1/test_types'},
                                 }

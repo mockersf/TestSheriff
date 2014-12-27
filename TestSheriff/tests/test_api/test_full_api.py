@@ -37,13 +37,13 @@ class Test_api(object):
         my_id1 = str(uuid.uuid4())
         data1 = {'test_id': my_id1, 'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
         json_query = prepare_json_query(data1)
-        rv = self.app.post('/v1/statuses', headers=json_query['headers'], data=json_query['json'])
+        rv = self.app.post('/api/v1/statuses', headers=json_query['headers'], data=json_query['json'])
         res_success = json.loads(rv.data.decode('utf-8'))
         data1 = {'test_id': my_id1, 'status': 'FAILURE', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
         json_query = prepare_json_query(data1)
-        rv = self.app.post('/v1/statuses', headers=json_query['headers'], data=json_query['json'])
+        rv = self.app.post('/api/v1/statuses', headers=json_query['headers'], data=json_query['json'])
         res_failure = json.loads(rv.data.decode('utf-8'))
-        rv = self.app.get('/v1/tests/{0}'.format(my_id1))
+        rv = self.app.get('/api/v1/tests/{0}'.format(my_id1))
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
         assert res['test']['_links']['last_status'] == res_failure['status']['_links']['self']
@@ -54,13 +54,13 @@ class Test_api(object):
         my_id1 = str(uuid.uuid4())
         data1 = {'test_id': my_id1, 'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
         json_query = prepare_json_query(data1)
-        rv = self.app.post('/v1/statuses', headers=json_query['headers'], data=json_query['json'])
+        rv = self.app.post('/api/v1/statuses', headers=json_query['headers'], data=json_query['json'])
         res_success = json.loads(rv.data.decode('utf-8'))
         data1 = {'test_id': my_id1, 'status': 'FAILURE', 'details': {'browser': 'Chrome', 'environment': 'master'}, 'type': 'test_tool'}
         json_query = prepare_json_query(data1)
-        rv = self.app.post('/v1/statuses', headers=json_query['headers'], data=json_query['json'])
+        rv = self.app.post('/api/v1/statuses', headers=json_query['headers'], data=json_query['json'])
         res_failure = json.loads(rv.data.decode('utf-8'))
-        rv = self.app.get('/v1/tests/{0}?expand=last_status,last_status_success'.format(my_id1))
+        rv = self.app.get('/api/v1/tests/{0}?expand=last_status,last_status_success'.format(my_id1))
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
         assert type(res['test']['last_status']) == type({})
@@ -75,11 +75,11 @@ class Test_api(object):
         test_type = str(uuid.uuid4())
         status = Status(test_id, test_type, test_status)
         status_id = str(Base.Base().insert(Status.collection, status.to_dict()))
-        rv = self.app.get('/v1/statuses/{0}'.format(status_id))
+        rv = self.app.get('/api/v1/statuses/{0}'.format(status_id))
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
         assert type(res['status']['test']) in [type('String'), type(u'Unicode')]
-        rv = self.app.get('/v1/statuses/{0}?expand=test'.format(status_id))
+        rv = self.app.get('/api/v1/statuses/{0}?expand=test'.format(status_id))
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
         assert type(res['status']['test']) in [type('String'), type(u'Unicode')]
