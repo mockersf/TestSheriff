@@ -25,12 +25,15 @@ class List(restful.Resource):
     def get(self):
         parser = reqparse.RequestParser()
         parser.add_argument('test_id', type=str, help='test ID', required=False, location='args')
+        parser.add_argument('status', type=str, help='status', required=False, location='args')
         parser.add_argument('nb_status', type=int, help='number of status to return, by default 100', required=False, location='args', default=100)
         parser.add_argument('page', type=int, help='page to return', required=False, location='args', default=0)
         args = parser.parse_args()
         query_filter = {}
         if args['test_id'] is not None:
-            query_filter = {StatusCore._test_id: args['test_id']}
+            query_filter[StatusCore._test_id] = args['test_id']
+        if args['status'] is not None:
+            query_filter[StatusCore._status] = args['status']
         statuses = StatusCore.list(query_filter=query_filter, sort=[(StatusCore._on, Base.desc)], page=args['page'], nb=args['nb_status'])
         statuses_preped = [prep_status(status) for status in statuses]
         return jsonify(result='Success', statuses=statuses_preped, count=len(statuses), total=statuses.count())

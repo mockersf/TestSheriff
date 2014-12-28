@@ -119,7 +119,7 @@ class Test_api_status(object):
         res = json.loads(rv.data.decode('utf-8'))
         assert res['count'] == 2
 
-    def test_list_page(self):
+    def test_list_page_filter(self):
         from core.Status import Status
         from core import Base
         my_id1 = str(uuid.uuid4())
@@ -129,14 +129,14 @@ class Test_api_status(object):
         for i in range(nb):
             status = random.choice(['SUCCESS', 'FAILURE'])
             my_id = my_id1 if i % 2 == 0 else my_id2
-            data = {'test_id': my_id, 'status': status, 'details': {'browser': 'Chrome', 'environment': 'master', 'i': i, 'p': i % 2}, 'type': 'test_tool'}
+            data = {'test_id': my_id, 'status': status, 'details': {'browser': 'Chrome', 'environment': 'master', 'i': i, 'p': i % 2, 'random': str(uuid.uuid4())}, 'type': 'test_tool'}
             datas[i] = data
             json_query = prepare_json_query(data)
             rv = self.app_status.post('/test/statuses', headers=json_query['headers'], data=json_query['json'])
             assert rv.status_code == 200
             res = json.loads(rv.data.decode('utf-8'))
             Base.Base().upsert_by_id(Status.collection, bson.ObjectId(res['status']['_id']), {Status._on: datetime.datetime.now() - datetime.timedelta(seconds=nb - i + 1)})
-            if i % 7 == 0:
+            if i % 9 == 0:
                 rv = self.app_status.get('/test/statuses')
                 assert rv.status_code == 200
                 res = json.loads(rv.data.decode('utf-8'))
@@ -159,6 +159,26 @@ class Test_api_status(object):
         assert res['statuses'][0]['details'] == datas[nb - 4]['details']
         assert res['statuses'][1]['details'] == datas[nb - 5]['details']
         assert res['statuses'][2]['details'] == datas[nb - 6]['details']
+        rv = self.app_status.get('/test/statuses?test_id={0}'.format(my_id1))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        datas_filtered = [datas[i] for i in datas if datas[i]['test_id'] == my_id1]
+        assert res['total'] == len(datas_filtered)
+        assert res['count'] == len(datas_filtered)
+        assert len(res['statuses']) == len(datas_filtered)
+        for i in range(res['count']):
+            assert res['statuses'][i]['test_id'] == my_id1
+            assert res['statuses'][i]['details'] == datas_filtered[len(datas_filtered) - i - 1]['details']
+        rv = self.app_status.get('/test/statuses?status={0}'.format('SUCCESS'))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        datas_filtered = [datas[i] for i in datas if datas[i]['status'] == 'SUCCESS']
+        assert res['total'] == len(datas_filtered)
+        assert res['count'] == len(datas_filtered)
+        assert len(res['statuses']) == len(datas_filtered)
+        for i in range(res['count']):
+            assert res['statuses'][i]['status'] == 'SUCCESS'
+            assert res['statuses'][i]['details'] == datas_filtered[len(datas_filtered) - i - 1]['details']
 
     def test_post_collection_purge(self):
         from core.Status import Status
