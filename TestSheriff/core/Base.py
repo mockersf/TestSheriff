@@ -23,10 +23,12 @@ class Base:
             query_filter['_id'] = bson.ObjectId(query_filter['_id'])
         return self._base[collection].find_one(query_filter)
 
-    def get_all(self, collection, query_filter={}, sort=None):
+    def get_all(self, collection, query_filter={}, sort=None, page=None, nb=None):
         items = self._base[collection].find(query_filter)
         if sort is not None:
             items.sort(sort)
+        if page is not None and nb is not None and page >= 0 and nb >= 0:
+            items = items[page * nb:(page + 1) * nb]
         return [item for item in items]
 
     def upsert_by_id(self, collection, object_id, object_to_update):

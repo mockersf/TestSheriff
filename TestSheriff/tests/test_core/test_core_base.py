@@ -109,3 +109,26 @@ class Test_core_base(object):
         aob = [ob for ob in self._test_collection.find({'p': p2})]
         assert len(aob) == 1
         assert aob[0]['object_id'] == object_id2
+
+    def test_get_all_pagination(self):
+        from core import Base
+        objs = {}
+        for i in range(10):
+            oid = str(uuid.uuid4())
+            objs[oid] = {'a': i, 'p': i % 2}
+            res = self._base.upsert_by_id(self._test_collection_name, oid, objs[oid])
+            assert res
+        aob = self._base.get_all(self._test_collection_name, {}, sort=[('a', Base.asc)])
+        assert len(aob) == 10
+        aob = self._base.get_all(self._test_collection_name, {}, sort=[('a', Base.asc)], page=1)
+        assert len(aob) == 10
+        aob = self._base.get_all(self._test_collection_name, {}, sort=[('a', Base.asc)], nb=2)
+        assert len(aob) == 10
+        aob = self._base.get_all(self._test_collection_name, {}, sort=[('a', Base.asc)], page=1, nb=-2)
+        assert len(aob) == 10
+        aob = self._base.get_all(self._test_collection_name, {}, sort=[('a', Base.asc)], page=-1, nb=2)
+        assert len(aob) == 10
+        aob = self._base.get_all(self._test_collection_name, {}, sort=[('a', Base.asc)], page=1, nb=2)
+        assert len(aob) == 2
+        assert aob[0]['a'] == 2
+        assert aob[1]['a'] == 3
