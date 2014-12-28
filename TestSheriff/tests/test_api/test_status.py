@@ -129,7 +129,7 @@ class Test_api_status(object):
         for i in range(nb):
             status = random.choice(['SUCCESS', 'FAILURE'])
             my_id = my_id1 if i % 2 == 0 else my_id2
-            data = {'test_id': my_id, 'status': status, 'details': {'browser': 'Chrome', 'environment': 'master', 'i': i, 'p': i % 2, 'random': str(uuid.uuid4())}, 'type': 'test_tool'}
+            data = {'test_id': my_id, 'status': status, 'details': {'browser': 'Chrome', 'environment': 'master', 'i': i, 'p': '{0}'.format(i % 2), 'random': str(uuid.uuid4())}, 'type': 'test_tool'}
             datas[i] = data
             json_query = prepare_json_query(data)
             rv = self.app_status.post('/test/statuses', headers=json_query['headers'], data=json_query['json'])
@@ -178,6 +178,16 @@ class Test_api_status(object):
         assert len(res['statuses']) == len(datas_filtered)
         for i in range(res['count']):
             assert res['statuses'][i]['status'] == 'SUCCESS'
+            assert res['statuses'][i]['details'] == datas_filtered[len(datas_filtered) - i - 1]['details']
+        rv = self.app_status.get('/test/statuses?field={0}&value={1}'.format('p', '0'))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        datas_filtered = [datas[i] for i in datas if datas[i]['details']['p'] == '0']
+        assert res['total'] == len(datas_filtered)
+        assert res['count'] == len(datas_filtered)
+        assert len(res['statuses']) == len(datas_filtered)
+        for i in range(res['count']):
+            assert res['statuses'][i]['details']['p'] == '0'
             assert res['statuses'][i]['details'] == datas_filtered[len(datas_filtered) - i - 1]['details']
 
     def test_post_collection_purge(self):
