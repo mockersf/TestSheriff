@@ -124,12 +124,16 @@ class Test_api_status(object):
         from core import Base
         my_id1 = str(uuid.uuid4())
         my_id2 = str(uuid.uuid4())
+        my_type1 = str(uuid.uuid4())
+        my_type2 = str(uuid.uuid4())
         nb = random.randint(110, 150)
         datas = {}
         for i in range(nb):
             status = random.choice(['SUCCESS', 'FAILURE'])
-            my_id = my_id1 if i % 2 == 0 else my_id2
-            data = {'test_id': my_id, 'status': status, 'details': {'browser': 'Chrome', 'environment': 'master', 'i': i, 'p': '{0}'.format(i % 2), 'random': str(uuid.uuid4())}, 'type': 'test_tool'}
+            my_id = random.choice([my_id1, my_id2])
+            my_type = random.choice([my_type1, my_type2])
+            data = {'test_id': my_id, 'status': status, 'type': my_type,
+                    'details': {'browser': 'Chrome', 'environment': 'master', 'i': i, 'p': '{0}'.format(i % 2), 'random': str(uuid.uuid4())}}
             datas[i] = data
             json_query = prepare_json_query(data)
             rv = self.app_status.post('/test/statuses', headers=json_query['headers'], data=json_query['json'])
@@ -168,6 +172,16 @@ class Test_api_status(object):
         assert len(res['statuses']) == len(datas_filtered)
         for i in range(res['count']):
             assert res['statuses'][i]['test_id'] == my_id1
+            assert res['statuses'][i]['details'] == datas_filtered[len(datas_filtered) - i - 1]['details']
+        rv = self.app_status.get('/test/statuses?type={0}'.format(my_type1))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        datas_filtered = [datas[i] for i in datas if datas[i]['type'] == my_type1]
+        assert res['total'] == len(datas_filtered)
+        assert res['count'] == len(datas_filtered)
+        assert len(res['statuses']) == len(datas_filtered)
+        for i in range(res['count']):
+            assert res['statuses'][i]['type'] == my_type1
             assert res['statuses'][i]['details'] == datas_filtered[len(datas_filtered) - i - 1]['details']
         rv = self.app_status.get('/test/statuses?status={0}'.format('SUCCESS'))
         assert rv.status_code == 200
