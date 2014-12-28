@@ -7,6 +7,7 @@ import uuid
 from bson.objectid import ObjectId
 from random import randint
 import bson
+import random
 
 from flask import Flask, url_for
 from flask.ext import restful
@@ -117,6 +118,47 @@ class Test_api_status(object):
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
         assert res['count'] == 2
+
+    def test_list_page(self):
+        from core.Status import Status
+        from core import Base
+        my_id1 = str(uuid.uuid4())
+        my_id2 = str(uuid.uuid4())
+        nb = random.randint(110, 150)
+        datas = {}
+        for i in range(nb):
+            status = random.choice(['SUCCESS', 'FAILURE'])
+            my_id = my_id1 if i % 2 == 0 else my_id2
+            data = {'test_id': my_id, 'status': status, 'details': {'browser': 'Chrome', 'environment': 'master', 'i': i, 'p': i % 2}, 'type': 'test_tool'}
+            datas[i] = data
+            json_query = prepare_json_query(data)
+            rv = self.app_status.post('/test/statuses', headers=json_query['headers'], data=json_query['json'])
+            assert rv.status_code == 200
+            res = json.loads(rv.data.decode('utf-8'))
+            Base.Base().upsert_by_id(Status.collection, bson.ObjectId(res['status']['_id']), {Status._on: datetime.datetime.now() - datetime.timedelta(seconds=nb - i + 1)})
+            if i % 7 == 0:
+                rv = self.app_status.get('/test/statuses')
+                assert rv.status_code == 200
+                res = json.loads(rv.data.decode('utf-8'))
+                assert res['count'] == 100 if i + 1 > 100 else i + 1
+                assert res['total'] == i + 1
+                assert len(res['statuses']) == 100 if i + 1 > 100 else i + 1
+        rv = self.app_status.get('/test/statuses')
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['total'] == nb
+        assert res['count'] == 100
+        assert len(res['statuses']) == 100
+        for i in range(100):
+            assert res['statuses'][i]['details'] == datas[nb - i - 1]['details']
+        rv = self.app_status.get('/test/statuses?page=1&nb_status=3')
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert res['count'] == 3
+        assert len(res['statuses']) == 3
+        assert res['statuses'][0]['details'] == datas[nb - 4]['details']
+        assert res['statuses'][1]['details'] == datas[nb - 5]['details']
+        assert res['statuses'][2]['details'] == datas[nb - 6]['details']
 
     def test_post_collection_purge(self):
         from core.Status import Status

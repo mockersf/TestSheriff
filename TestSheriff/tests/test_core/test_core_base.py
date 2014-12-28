@@ -77,15 +77,16 @@ class Test_core_base(object):
         res = self._base.upsert_by_id(self._test_collection_name, object_id3, {'p': p2, 'a': 3})
         assert res
         aob = self._base.get_all(self._test_collection_name, {'p': p1})
-        assert len(aob) == 2
+        assert aob.count() == 2
+        aob = [ob for ob in aob]
         assert object_id1 in [ob['_id'] for ob in aob]
         assert object_id2 in [ob['_id'] for ob in aob]
         aob = self._base.get_all(self._test_collection_name, {'p': p1}, [('a', Base.asc)])
-        assert len(aob) == 2
+        assert aob.count() == 2
         assert aob[0]['_id'] == object_id1
         assert aob[1]['_id'] == object_id2
         aob = self._base.get_all(self._test_collection_name, {'p': p1}, [('a', Base.desc)])
-        assert len(aob) == 2
+        assert aob.count() == 2
         assert aob[0]['_id'] == object_id2
         assert aob[1]['_id'] == object_id1
 
@@ -119,16 +120,23 @@ class Test_core_base(object):
             res = self._base.upsert_by_id(self._test_collection_name, oid, objs[oid])
             assert res
         aob = self._base.get_all(self._test_collection_name, {}, sort=[('a', Base.asc)])
-        assert len(aob) == 10
+        assert aob.count() == 10
+        assert len([ob for ob in aob]) == 10
         aob = self._base.get_all(self._test_collection_name, {}, sort=[('a', Base.asc)], page=1)
-        assert len(aob) == 10
+        assert aob.count() == 10
+        assert len([ob for ob in aob]) == 10
         aob = self._base.get_all(self._test_collection_name, {}, sort=[('a', Base.asc)], nb=2)
-        assert len(aob) == 10
+        assert aob.count() == 10
+        assert len([ob for ob in aob]) == 10
         aob = self._base.get_all(self._test_collection_name, {}, sort=[('a', Base.asc)], page=1, nb=-2)
-        assert len(aob) == 10
+        assert aob.count() == 10
+        assert len([ob for ob in aob]) == 10
         aob = self._base.get_all(self._test_collection_name, {}, sort=[('a', Base.asc)], page=-1, nb=2)
-        assert len(aob) == 10
+        assert aob.count() == 10
+        assert len([ob for ob in aob]) == 10
         aob = self._base.get_all(self._test_collection_name, {}, sort=[('a', Base.asc)], page=1, nb=2)
+        assert aob.count() == 10
+        aob = [ob for ob in aob]
         assert len(aob) == 2
         assert aob[0]['a'] == 2
         assert aob[1]['a'] == 3

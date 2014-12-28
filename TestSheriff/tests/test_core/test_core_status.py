@@ -52,14 +52,14 @@ class Test_core_status(object):
         now = datetime.datetime.now()
         status.save()
         ast = Base().get_all(Status.collection, {})
-        assert len(ast) == 1
+        assert ast.count() == 1
         assert ast[0]['test_id'] == test_id
         assert ast[0]['status'] == test_status
         assert ast[0]['details'] == details
         assert ast[0]['type'] == test_type
         assert ast[0]['on'] < now + datetime.timedelta(seconds=1)
         at = Base().get_all(Test.collection, {})
-        assert len(at) == 1
+        assert at.count() == 1
         assert at[0]['test_id'] == test_id
         assert at[0]['type'] == test_type
         assert at[0]['last_seen'] < ast[0]['on'] + datetime.timedelta(seconds=1)
@@ -95,7 +95,7 @@ class Test_core_status(object):
         status2.save()
         status2.remove()
         ast = Base().get_all(Status.collection, {})
-        assert len(ast) == 1
+        assert ast.count() == 1
         assert ast[0]['test_id'] == test_id1
 
     def test_update_last(self):
@@ -115,7 +115,7 @@ class Test_core_status(object):
         assert st['last'] == True
         status2.update_last()
         ast = Base().get_all(Status.collection, {'last': True})
-        assert len(ast) == 1
+        assert ast.count() == 1
         st = Base().get_one(Status.collection, {'test_id': test_id2})
         assert st['last'] == False
 
@@ -134,12 +134,12 @@ class Test_core_status(object):
         status2 = Status(test_id, test_type, test_status2, details=details)
         status2.save_and_update()
         ast = Base().get_all(Status.collection, {})
-        assert len(ast) == 2
+        assert ast.count() == 2
         ast = Base().get_all(Status.collection, {'last': False})
-        assert len(ast) == 1
+        assert ast.count() == 1
         assert ast[0]['status'] == 'FAILURE'
         ast = Base().get_all(Status.collection, {'last': True})
-        assert len(ast) == 1
+        assert ast.count() == 1
         assert ast[0]['status'] == 'SUCCESS'
 
     def test_get_last(self):
@@ -153,20 +153,20 @@ class Test_core_status(object):
         status1 = Status(test_id, test_type, test_status1, details=details)
         status1.save_and_update()
         at = Base().get_all(Test.collection, {})
-        assert len(at) == 1
+        assert at.count() == 1
         assert at[0]['test_id'] == test_id
         test_status2 = 'SUCCESS'
         status2 = Status(test_id, test_type, test_status2, details=details)
         status2.save_and_update()
         at = Base().get_all(Test.collection, {})
-        assert len(at) == 1
+        assert at.count() == 1
         Base().upsert_by_id(Status.collection, bson.ObjectId(status1._id), {Status._on: datetime.datetime.now() - datetime.timedelta(seconds=3)})
         Base().upsert_by_id(Status.collection, bson.ObjectId(status2._id), {Status._on: datetime.datetime.now() - datetime.timedelta(seconds=3)})
         sl = Status(test_id).get_last()
         assert sl._status == 'SUCCESS'
         assert sl._test_id == test_id
         at = Base().get_all(Test.collection, {})
-        assert len(at) == 1
+        assert at.count() == 1
         assert at[0]['last_seen'] > Status(base_id=status2._id).get()._on + datetime.timedelta(seconds=1)
 
     def test_list(self):
@@ -344,5 +344,5 @@ class Test_core_status(object):
         res = status3.purge()
         assert res['nb_removed'] == 1
         ast = Base().get_all(Status.collection, {})
-        assert len(ast) == 2
+        assert ast.count() == 2
         assert sorted([str(st['_id']) for st in ast]) == sorted([status2._id, status3._id])

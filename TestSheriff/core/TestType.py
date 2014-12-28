@@ -86,7 +86,9 @@ class TestType:
         query_filter = self.to_dict()
         if additional_filter is not None:
             query_filter.update(additional_filter)
-        return [TestType.from_dict(btt) for btt in Base.Base().get_all(self.collection, query_filter)]
+        cursor = Base.Base().get_all(self.collection, query_filter)
+        cursor._transform = lambda btt: TestType.from_dict(btt)
+        return cursor
 
     def get_one(self):
         query_filter = self.to_dict()

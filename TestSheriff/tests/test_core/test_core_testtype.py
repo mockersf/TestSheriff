@@ -37,7 +37,7 @@ class Test_core_testtype(object):
         test_type = TestType(my_type, doc)
         test_type.save()
         ast = Base().get_all(TestType.collection, {})
-        assert len(ast) == 1
+        assert ast.count() == 1
         assert ast[0]['type'] == my_type
         assert ast[0]['doc_fields'] == doc
 

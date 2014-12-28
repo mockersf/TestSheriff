@@ -8,6 +8,29 @@ base_port = 27017
 asc = pymongo.ASCENDING
 desc = pymongo.DESCENDING
 
+
+class TransformableCursor:
+    _cursor = None
+    _transform = None
+
+    def __init__(self, cursor, transform=lambda o: o):
+        self._cursor = cursor
+        self._transform = transform
+
+    def count(self):
+        return self._cursor.count(with_limit_and_skip=False)
+
+    def __len__(self):
+        return self._cursor.count(with_limit_and_skip=True)
+
+    def __iter__(self):
+        for obj in self._cursor:
+            yield self._transform(obj)
+
+    def __getitem__(self, index):
+        return self._transform(self._cursor[index])
+
+
 class Base:
     _base = None
 
@@ -29,7 +52,7 @@ class Base:
             items.sort(sort)
         if page is not None and nb is not None and page >= 0 and nb >= 0:
             items = items[page * nb:(page + 1) * nb]
-        return [item for item in items]
+        return TransformableCursor(items)
 
     def upsert_by_id(self, collection, object_id, object_to_update):
         res = self._base[collection].update({'_id': object_id}, {'$set': object_to_update}, upsert=True)

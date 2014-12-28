@@ -41,7 +41,7 @@ class Test_core_index(object):
         index = Index(my_type, field, values)
         index.save()
         ast = Base().get_all(Index.collection, {})
-        assert len(ast) == 1
+        assert ast.count() == 1
         assert ast[0]['type'] == my_type
         assert ast[0]['field'] == field
         assert ast[0]['values'] == values
@@ -70,24 +70,24 @@ class Test_core_index(object):
         #Index.index(status1)
         status1.save()
         ast = Base().get_all(Index.collection, {})
-        assert len(ast) == 1
+        assert ast.count() == 1
         assert ast[0]['type'] == test_type
         assert ast[0]['field'] == field1
         assert ast[0]['values'] == ['Firefox']
         #Index.index(status2)
         status2.save()
         ast = Base().get_all(Index.collection, {})
-        assert len(ast) == 1
+        assert ast.count() == 1
         assert sorted(ast[0]['values']) == sorted(['Chrome', 'Firefox'])
         #Index.index(status3)
         status3.save()
         ast = Base().get_all(Index.collection, {})
-        assert len(ast) == 2
+        assert ast.count() == 2
         ast = Base().get_all(Index.collection, {'field': 'browser'})
-        assert len(ast) == 1
+        assert ast.count() == 1
         assert sorted(ast[0]['values']) == sorted(['Chrome', 'Firefox'])
         ast = Base().get_all(Index.collection, {'field': 'environment'})
-        assert len(ast) == 1
+        assert ast.count() == 1
         assert ast[0]['values'] == ['master']
 
     def test_index_large_status(self):
@@ -108,10 +108,10 @@ class Test_core_index(object):
         status2 = Status(test_id, test_type, test_status, details=details2)
         status2.save()
         ast = Base().get_all(Index.collection, {'field': 'browser'})
-        assert len(ast) == 1
+        assert ast.count() == 1
         assert sorted(ast[0]['values']) == sorted(['Chrome', 'Firefox'])
         ast = Base().get_all(Index.collection, {'field': 'environment'})
-        assert len(ast) == 1
+        assert ast.count() == 1
         assert ast[0]['values'] == ['master']
 
     def test_get_all(self):
@@ -156,21 +156,21 @@ class Test_core_index(object):
         #Index.index(status1)
         status1.save()
         ast = Base().get_all(Index.collection, {})
-        assert len(ast) == 1
+        assert ast.count() == 1
         assert ast[0]['type'] == test_type
         assert ast[0]['field'] == field1
         assert ast[0]['values'] == ['Firefox']
         #Index.index(status2)
         status2.save()
         ast = Base().get_all(Index.collection, {})
-        assert len(ast) == 1
+        assert ast.count() == 1
         assert sorted(ast[0]['values']) == sorted(['Chrome', 'Firefox'])
         #Index.index(status3)
         status3.save()
         ast = Base().get_all(Index.collection, {})
-        assert len(ast) == 1
+        assert ast.count() == 1
         ast = Base().get_all(Index.collection, {'field': 'browser'})
-        assert len(ast) == 1
+        assert ast.count() == 1
         assert sorted(ast[0]['values']) == sorted(['Chrome', 'Firefox'])
         ast = Base().get_all(Index.collection, {'field': 'environment'})
-        assert len(ast) == 0
+        assert ast.count() == 0

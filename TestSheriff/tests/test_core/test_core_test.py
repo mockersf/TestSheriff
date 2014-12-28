@@ -41,7 +41,7 @@ class Test_core_test(object):
         res = test.save()
         assert res
         at = Base().get_all(Test.collection, {})
-        assert len(at) == 1
+        assert at.count() == 1
         assert at[0]['_id'] == test_id
         assert at[0]['owner'] == owner
         assert at[0]['test_id'] == test_id

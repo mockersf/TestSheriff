@@ -48,7 +48,9 @@ class Test:
         query_filter = self.to_dict()
         if additional_filter is not None:
             query_filter.update(additional_filter)
-        return [Test.from_dict(bt) for bt in Base.Base().get_all(self.collection, query_filter)]
+        cursor = Base.Base().get_all(self.collection, query_filter)
+        cursor._transform = lambda bt: Test.from_dict(bt)
+        return cursor
 
     def get_all_ownerless(self):
         additional_filter = {Test._owner: None}

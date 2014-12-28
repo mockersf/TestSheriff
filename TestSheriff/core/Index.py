@@ -64,7 +64,9 @@ class Index:
         query_filter = self.to_dict()
         if additional_filter is not None:
             query_filter.update(additional_filter)
-        return [Index.from_dict(index) for index in Base.Base().get_all(self.collection, query_filter)]
+        cursor = Base.Base().get_all(self.collection, query_filter)
+        cursor._transform = lambda bi: Index.from_dict(bi)
+        return cursor
 
     def save(self):
         index_id = "{0}-{1}".format(self._test_type, self._field)
