@@ -160,13 +160,14 @@ class Test_core_status(object):
         status2.save_and_update()
         at = Base().get_all(Test.collection, {})
         assert len(at) == 1
-        time.sleep(3)
+        Base().upsert_by_id(Status.collection, bson.ObjectId(status1._id), {Status._on: datetime.datetime.now() - datetime.timedelta(seconds=3)})
+        Base().upsert_by_id(Status.collection, bson.ObjectId(status2._id), {Status._on: datetime.datetime.now() - datetime.timedelta(seconds=3)})
         sl = Status(test_id).get_last()
         assert sl._status == 'SUCCESS'
         assert sl._test_id == test_id
         at = Base().get_all(Test.collection, {})
         assert len(at) == 1
-        assert at[0]['last_seen'] > status2._on + datetime.timedelta(seconds=1)
+        assert at[0]['last_seen'] > Status(base_id=status2._id).get()._on + datetime.timedelta(seconds=1)
 
     def test_list(self):
         from core.Status import Status
@@ -177,14 +178,42 @@ class Test_core_status(object):
         test_type = str(uuid.uuid4())
         status1 = Status(test_id1, test_type, test_status, details=details)
         status1.save()
-        time.sleep(1)
+        Base.Base().upsert_by_id(Status.collection, bson.ObjectId(status1._id), {Status._on: datetime.datetime.now() - datetime.timedelta(seconds=1)})
         test_id2 = str(uuid.uuid4())
         status2 = Status(test_id2, test_type, test_status, details=details)
         status2.save()
         ast = Status.list(sort=[('on', Base.desc)])
         assert len(ast) == 2
-        assert ast[0].to_dict() == status2.to_dict()
-        assert ast[1].to_dict() == status1.to_dict()
+        assert ast[0].to_dict() == Status(base_id=status2._id).get().to_dict()
+        assert ast[1].to_dict() == Status(base_id=status1._id).get().to_dict()
+        ast = Status.list(sort=[('on', Base.asc)])
+        assert len(ast) == 2
+        assert ast[0].to_dict() == Status(base_id=status1._id).get().to_dict()
+        assert ast[1].to_dict() == Status(base_id=status2._id).get().to_dict()
+
+    def test_list_page(self):
+        from core.Status import Status
+        from core import Base
+        test_id1 = str(uuid.uuid4())
+        test_status = 'FAILURE'
+        details = {'browser': random.choice(['Firefox', 'Chrome'])}
+        test_type = str(uuid.uuid4())
+        nb = 10
+        statuses = {}
+        for i in range(nb):
+            status = Status(test_id1, test_type, test_status, details=details)
+            status.save()
+            Base.Base().upsert_by_id(Status.collection, bson.ObjectId(status._id), {Status._on: datetime.datetime.now() - datetime.timedelta(seconds=nb - i + 1)})
+            statuses[i] = status
+        ast = Status.list(sort=[('on', Base.asc)], page=1, nb=2)
+        assert len(ast) == 2
+        assert ast[0].to_dict() == Status(base_id=statuses[2]._id).get().to_dict()
+        assert ast[1].to_dict() == Status(base_id=statuses[3]._id).get().to_dict()
+        ast = Status.list(sort=[('on', Base.desc)], page=2, nb=3)
+        assert len(ast) == 3
+        assert ast[0].to_dict() == Status(base_id=statuses[3]._id).get().to_dict()
+        assert ast[1].to_dict() == Status(base_id=statuses[2]._id).get().to_dict()
+        assert ast[2].to_dict() == Status(base_id=statuses[1]._id).get().to_dict()
 
     def test_get(self):
         from core.Status import Status

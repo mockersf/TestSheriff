@@ -73,8 +73,8 @@ class Status:
         return status
 
     @staticmethod
-    def list(query_filter={}, sort=None):
-        return [Status.from_dict(obj) for obj in Base.Base().get_all(Status.collection, query_filter, sort)]
+    def list(query_filter={}, sort=None, page=None, nb=None):
+        return [Status.from_dict(obj) for obj in Base.Base().get_all(Status.collection, query_filter, sort, page, nb)]
 
     def save(self):
         Test(test_id=self._test_id, test_type=self._type).save()
