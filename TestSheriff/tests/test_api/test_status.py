@@ -203,6 +203,26 @@ class Test_api_status(object):
         for i in range(res['count']):
             assert res['statuses'][i]['details']['p'] == '0'
             assert res['statuses'][i]['details'] == datas_filtered[len(datas_filtered) - i - 1]['details']
+        next_page = '/test/statuses?field={0}&value={1}&page=0&nb_status=5'.format('p', '0')
+        s_all_page_api = []
+        i_all_page_api = 0
+        datas_filtered = [datas[i] for i in datas if datas[i]['details']['p'] == '0']
+        while next_page is not None:
+            print(next_page)
+            rv = self.app_status.get(next_page)
+            assert rv.status_code == 200
+            res = json.loads(rv.data.decode('utf-8'))
+            for i in range(res['count']):
+                assert res['statuses'][i]['details']['p'] == '0'
+                assert res['statuses'][i]['details'] == datas_filtered[len(datas_filtered) - i_all_page_api - 1]['details']
+                s_all_page_api.append(res['statuses'][i])
+                i_all_page_api += 1
+            if 'next' in res['pagination']:
+                next_page = res['pagination']['next']['href']
+            else:
+                next_page = None
+        assert len(s_all_page_api) == len(datas_filtered)
+
 
     def test_post_collection_purge(self):
         from core.Status import Status

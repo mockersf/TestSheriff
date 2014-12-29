@@ -33,17 +33,36 @@ class List(restful.Resource):
         parser.add_argument('page', type=int, help='page to return', required=False, location='args', default=0)
         args = parser.parse_args()
         query_filter = {}
+        query = {'page': args['page'], 'nb_status': args['nb_status']}
         if args['test_id'] is not None:
             query_filter[StatusCore._test_id] = args['test_id']
+            query['test_id'] = args['test_id']
         if args['status'] is not None:
             query_filter[StatusCore._status] = args['status']
+            query['status'] = args['status']
         if args['type'] is not None:
             query_filter[StatusCore._type] = args['type']
+            query['type'] = args['type']
         if args['field'] is not None and args['value'] is not None:
             query_filter[StatusCore._details + '.' + args['field']] = args['value']
+            query['field'] = args['field']
+            query['value'] = args['value']
         statuses = StatusCore.list(query_filter=query_filter, sort=[(StatusCore._on, Base.desc)], page=args['page'], nb=args['nb_status'])
         statuses_preped = [prep_status(status) for status in statuses]
-        return jsonify(result='Success', statuses=statuses_preped, count=len(statuses), total=statuses.count())
+        pagination = {'_links': {}}
+        if statuses.count() > len(statuses):
+            add_link_or_expand(pagination, 'self', 'statuses', **query)
+            if args['page'] < statuses.count() // args['nb_status']:
+                query['page'] = args['page'] + 1
+                add_link_or_expand(pagination, 'next', 'statuses', **query)
+            if args['page'] > 0:
+                query['page'] = args['page'] - 1
+                add_link_or_expand(pagination, 'prev', 'statuses', **query)
+            query['page'] = 0
+            add_link_or_expand(pagination, 'first', 'statuses', **query)
+            query['page'] = statuses.count() // args['nb_status']
+            add_link_or_expand(pagination, 'last', 'statuses', **query)
+        return jsonify(result='Success', statuses=statuses_preped, count=len(statuses), total=statuses.count(), pagination=pagination['_links'])
     def post(self):
         purge_result = None
         parser = reqparse.RequestParser()
