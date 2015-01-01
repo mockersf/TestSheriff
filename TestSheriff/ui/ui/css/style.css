@@ -1,0 +1,11 @@
+#header.row {
+  height: 45px;
+  margin: 0px;
+  background-color: blue;
+}
+
+#main.row {
+  height: 600px;
+  margin: 0px;
+  background-color: white;
+}
