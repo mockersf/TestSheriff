@@ -4,22 +4,102 @@
     <link rel="stylesheet" href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css'>
     <link href="ui/css/style.css" rel="stylesheet">
   </head>
-  <body ng-app="statuses" style="background-color: grey;">
+  <body ng-app="statuses" style="background-color: blue;">
     <div class="container" id="controller" ng-controller="last_statuses as ls">
-      <div class="row" id="header">
-        <div class="btn-group" role="group">
-          <button type="button" class="btn btn-success" ng-click="ls.get_last();">Get Last Statuses</button>
+
+        <script type="text/ng-template" id="AddFilter.html">
+          <div class="modal-header">
+            <h3 class="modal-title">Add a new filter</h3>
+          </div>
+          <div class="modal-body">
+            <input type="text" class="form-control" placeholder="Field name" ng-model="field"><br />
+            <input type="text" class="form-control" placeholder="Value" ng-model="value">
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary" ng-click="ok()">OK</button>
+            <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+          </div>
+        </script>
+
+      <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+          <div class="navbar-header">
+            <a class="navbar-brand" href="#">Test Sheriff</a>
+          </div>
+          <button type="button" class="btn navbar-btn" ng-repeat="(key, value) in ls.filter" ng-click="ls.toggle_filter(key);" ng-class="{'btn-warning': value['enabled'], 'btn-default': !value['enabled']}">{{key}} : {{value['value'] | limitTo: 20}}{{value['value'].length > 20 ? '...' : ''}}</button>
+          <button type="button" class="btn btn-info navbar-btn" ng-click="ls.add_filter_open()">Add Filter</button>
+          <button type="button" class="btn btn-success navbar-btn navbar-right" ng-click="ls.get_last();">Get Last Statuses</button>
         </div>
-      </div>
-      <div class="row" id="main">
-        <ul class="list-group">
-          <li class="list-group-item" ng-repeat="status in ls.statuses">{{status.test_id}} - {{status.status}} - {{status.on}}<br />{{status}}</li>
-        </ul>
+      </nav>
+      <div class="row">
+        <div class="list-group" infinite-scroll="ls.get_next_page()" infinite-scroll-distance="1">
+          <div class="list-group-item" ng-repeat="status in ls.statuses" ng-class="{'list-group-item-success': status.status == 'SUCCESS', 'list-group-item-danger': status.status == 'FAILURE', 'list-group-item-warning': status.status == 'UNKNOWN'}" ng-click="status.show_details = !status.show_details">
+            <div class="row">
+              <div class="col-lg-1" style="padding-top: 3px;">
+                <span class="label" style="font-size: 90%;" ng-class="{'label-success': status.status == 'SUCCESS', 'label-danger': status.status == 'FAILURE', 'label-warning': status.status == 'UNKNOWN'}">{{status.status}}</span>
+              </div>
+              <div class="col-lg-8">
+                {{status.test_id}}
+              </div>
+              <div class="pull-right col-lg-3">
+                <div class="col-lg-8">
+                  {{status.on}}
+                </div>
+                <div class="col-lg-4" style="padding-top: 3px;">
+                  <span class="label label-primary" style="font-size: 90%;">{{status.type}}</span>
+                </div>
+              </div>
+            </div>
+            <br ng-show="status.show_details" />
+            <div ng-show="status.show_details" style="color: #333;">
+              <ul class="list-group">
+                <li class="list-group-item">
+                  <div class="row">
+                    <div class="col-lg-3">Test ID</div>
+                    <div class="col-lg-9" ng-click="$event.stopPropagation()">
+                      {{status.test_id}}
+                      <span class="glyphicon glyphicon-search" aria-hidden="true" ng-click="ls.add_filter('test_id', status.test_id, false); $event.stopPropagation();"></span>
+                    </div>
+                  </div>
+                </li>
+                <li class="list-group-item">
+                  <div class="row">
+                    <div class="col-lg-3">Status</div>
+                    <div class="col-lg-9" ng-click="$event.stopPropagation()">
+                      {{status.status}}
+                      <span class="glyphicon glyphicon-search" aria-hidden="true" ng-click="ls.add_filter('status', status.status, false); $event.stopPropagation();"></span>
+                    </div>
+                  </div>
+                </li>
+                <li class="list-group-item">
+                  <div class="row">
+                    <div class="col-lg-3">Type</div>
+                    <div class="col-lg-9" ng-click="$event.stopPropagation()">
+                      {{status.type}}
+                      <span class="glyphicon glyphicon-search" aria-hidden="true" ng-click="ls.add_filter('type', status.type, false); $event.stopPropagation();"></span>
+                    </div>
+                  </div>
+                </li>
+                <li class="list-group-item" ng-repeat="(key, value) in status.details">
+                  <div class="row">
+                    <div class="col-lg-3">{{key}}</div>
+                    <div class="col-lg-9" ng-click="$event.stopPropagation()">
+                      {{value | limitTo: 100}}{{value.length > 100 ? '...' : ''}}
+                      <span class="glyphicon glyphicon-search" aria-hidden="true" ng-click="ls.add_filter(key, value, true); $event.stopPropagation();"></span>
+                    </div>
+                  </div>
+                </li>
+            </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script type="text/javascript" src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js'></script>
     <script type="text/javascript" src='https://ajax.googleapis.com/ajax/libs/angularjs/1.3.8/angular.min.js'></script>
+    <script type="text/javascript" src='ui/js/ui-bootstrap-tpls-0.12.0.min.js'></script>
+    <script type='text/javascript' src='ui/js/ng-infinite-scroll-1.0.0.min.js'></script>
     <script type="text/javascript" src='ui/js/app.js'></script>
   </body>
 </html>
