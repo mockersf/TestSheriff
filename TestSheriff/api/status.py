@@ -29,6 +29,9 @@ class List(restful.Resource):
         parser.add_argument('type', type=str, help='test type', required=False, location='args')
         parser.add_argument('field', type=str, help='details field name', required=False, location='args')
         parser.add_argument('value', type=str, help='details field value', required=False, location='args')
+        for i_field in range(10):
+            parser.add_argument('field{0}'.format(i_field), type=str, help='details field name', required=False, location='args')
+            parser.add_argument('value{0}'.format(i_field), type=str, help='details field value', required=False, location='args')
         parser.add_argument('nb_status', type=int, help='number of status to return, by default 100', required=False, location='args', default=100)
         parser.add_argument('page', type=int, help='page to return', required=False, location='args', default=0)
         args = parser.parse_args()
@@ -47,6 +50,16 @@ class List(restful.Resource):
             query_filter[StatusCore._details + '.' + args['field']] = args['value']
             query['field'] = args['field']
             query['value'] = args['value']
+        i_field = 1
+        next_field = True
+        while next_field:
+            if args['field{0}'.format(i_field)] is not None and args['value{0}'.format(i_field)] is not None:
+                query_filter[StatusCore._details + '.' + args['field{0}'.format(i_field)]] = args['value{0}'.format(i_field)]
+                query['field{0}'.format(i_field)] = args['field{0}'.format(i_field)]
+                query['value{0}'.format(i_field)] = args['value{0}'.format(i_field)]
+                i_field += 1
+            else:
+                next_field = False
         statuses = StatusCore.list(query_filter=query_filter, sort=[(StatusCore._on, Base.desc)], page=args['page'], nb=args['nb_status'])
         statuses_preped = [prep_status(status) for status in statuses]
         pagination = {'_links': {}}

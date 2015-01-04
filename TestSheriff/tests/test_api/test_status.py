@@ -132,8 +132,9 @@ class Test_api_status(object):
             status = random.choice(['SUCCESS', 'FAILURE'])
             my_id = random.choice([my_id1, my_id2])
             my_type = random.choice([my_type1, my_type2])
+            my_browser = random.choice(['Chrome', 'Firefox'])
             data = {'test_id': my_id, 'status': status, 'type': my_type,
-                    'details': {'browser': 'Chrome', 'environment': 'master', 'i': i, 'p': '{0}'.format(i % 2), 'random': str(uuid.uuid4())}}
+                    'details': {'browser': my_browser, 'environment': 'master', 'i': i, 'p': '{0}'.format(i % 2), 'random': str(uuid.uuid4())}}
             datas[i] = data
             json_query = prepare_json_query(data)
             rv = self.app_status.post('/test/statuses', headers=json_query['headers'], data=json_query['json'])
@@ -207,6 +208,25 @@ class Test_api_status(object):
         s_all_page_api = []
         i_all_page_api = 0
         datas_filtered = [datas[i] for i in datas if datas[i]['details']['p'] == '0']
+        while next_page is not None:
+            print(next_page)
+            rv = self.app_status.get(next_page)
+            assert rv.status_code == 200
+            res = json.loads(rv.data.decode('utf-8'))
+            for i in range(res['count']):
+                assert res['statuses'][i]['details']['p'] == '0'
+                assert res['statuses'][i]['details'] == datas_filtered[len(datas_filtered) - i_all_page_api - 1]['details']
+                s_all_page_api.append(res['statuses'][i])
+                i_all_page_api += 1
+            if 'next' in res['pagination']:
+                next_page = res['pagination']['next']['href']
+            else:
+                next_page = None
+        assert len(s_all_page_api) == len(datas_filtered)
+        next_page = '/test/statuses?field1={0}&value1={1}&field2={2}&value2={3}&page=0&nb_status=7'.format('p', '0', 'browser', 'Chrome')
+        s_all_page_api = []
+        i_all_page_api = 0
+        datas_filtered = [datas[i] for i in datas if datas[i]['details']['p'] == '0' and datas[i]['details']['browser'] == 'Chrome']
         while next_page is not None:
             print(next_page)
             rv = self.app_status.get(next_page)
