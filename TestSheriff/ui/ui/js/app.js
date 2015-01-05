@@ -24,10 +24,12 @@ nb_item = 15;
 
     this.get_last_filtered = function() {
       var filter_query = '';
+      var i_field = 1;
       for (var key in this.filter) {
         if (this.filter[key]['enabled']) {
           if (this.filter[key]['is_details']) {
-            filter_query += '&field=' + key + '&value=' + this.filter[key]['value'];
+            filter_query += '&field' + i_field + '=' + key + '&value' + i_field + '=' + this.filter[key]['value'];
+            i_field++;
           } else {
             filter_query += '&' + key + '=' + this.filter[key]['value'];
           }
