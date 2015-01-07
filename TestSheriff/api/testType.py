@@ -1,12 +1,9 @@
-from flask import jsonify, url_for, abort, request
+from flask import jsonify, abort, request
 from flask.ext import restful
 from flask.ext.restful import reqparse
 
-from core.Test import Test as TestCore
-from core.Status import Status as StatusCore
 from core.TestType import TestType as TestTypeCore
 from core.Index import Index as IndexCore
-from core import Base
 
 from .tools import add_link_or_expand, new_endpoint
 

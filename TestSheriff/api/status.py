@@ -1,4 +1,4 @@
-from flask import jsonify, request, url_for, abort
+from flask import jsonify, request, abort
 from flask.ext import restful
 from flask.ext.restful import reqparse
 

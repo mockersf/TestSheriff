@@ -1,7 +1,6 @@
-import datetime
-
 from . import Base
 from .Filter import Filter
+
 
 class TestType:
     collection = 'test_type'
@@ -13,22 +12,20 @@ class TestType:
     _default_purge = [{'field': 'Status._on', 'operator': 'before', 'value': 'datetime.datetime.now() - datetime.timedelta(days=7)'},
                       {'field': 'Status._last', 'operator': 'not equal', 'value': 'True'}]
     _default_purge = {'action': 'REMOVE',
-                      'condition':
-                           Filter.from_dict({'operator': 'AND',
-                            'part1': {'field': 'Status._last', 'operator': 'NOT EQUAL', 'value': 'True'},
-                            'part2': {'field': 'Status._on', 'operator': 'LESSER THAN', 'value': 'datetime.datetime.now() - datetime.timedelta(days=7)'}
-                            })
-                    }
+                      'condition': Filter.from_dict({'operator': 'AND',
+                                                     'part1': {'field': 'Status._last', 'operator': 'NOT EQUAL', 'value': 'True'},
+                                                     'part2': {'field': 'Status._on', 'operator': 'LESSER THAN', 'value': 'datetime.datetime.now() - datetime.timedelta(days=7)'}
+                                                    })
+                     }
     _default_run = {'modifier': 'ANY',
-                    'condition':
-                           Filter.from_dict({'operator': 'AND',
-                            'part1': {'field': 'Status._last', 'operator': 'EQUAL', 'value': 'True'},
-                            'part2': {'operator': 'OR',
-                                      'part1': {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'SUCCESS'},
-                                      'part2': {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'UNKNOWN'},
-                                      },
-                            })
-                    }
+                    'condition': Filter.from_dict({'operator': 'AND',
+                                                   'part1': {'field': 'Status._last', 'operator': 'EQUAL', 'value': 'True'},
+                                                   'part2': {'operator': 'OR',
+                                                             'part1': {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'SUCCESS'},
+                                                             'part2': {'field': 'Status._status', 'operator': 'EQUAL', 'value': 'UNKNOWN'},
+                                                            },
+                                                  })
+                   }
     modifiers = ['ANY', 'ALL']
     actions = ['REMOVE']
 
@@ -51,9 +48,12 @@ class TestType:
         if self._doc_fields_to_index is not None:
             dict_of_self[TestType._doc_fields_to_index] = self._doc_fields_to_index
         if self._purge is not None:
-            dict_of_self[TestType._purge] = {'action': self._purge['action'], 'condition': self._purge['condition'].to_dict()}
+            dict_of_self[TestType._purge] = {'action': self._purge['action'],
+                                             'condition': self._purge['condition'].to_dict()}
         if self._run is not None:
-            dict_of_self[TestType._run] = {run: {'modifier': self._run[run]['modifier'], 'condition': self._run[run]['condition'].to_dict()} for run in self._run}
+            dict_of_self[TestType._run] = {run: {'modifier': self._run[run]['modifier'],
+                                                 'condition': self._run[run]['condition'].to_dict()}
+                                           for run in self._run}
         return dict_of_self
 
     @staticmethod
@@ -66,9 +66,13 @@ class TestType:
         if TestType._doc_fields_to_index in test_type_dict:
             test_type._doc_fields_to_index = test_type_dict[TestType._doc_fields_to_index]
         if TestType._purge in test_type_dict:
-            test_type._purge = {'action': test_type_dict[TestType._purge]['action'], 'condition': Filter.from_dict(test_type_dict[TestType._purge]['condition'])}
+            test_type._purge = {'action': test_type_dict[TestType._purge]['action'],
+                                'condition': Filter.from_dict(test_type_dict[TestType._purge]['condition'])}
         if TestType._run in test_type_dict:
-            test_type._run = {run: {'modifier': test_type_dict[TestType._run][run]['modifier'], 'condition': Filter.from_dict(test_type_dict[TestType._run][run]['condition'])} for run in test_type_dict[TestType._run]}
+            run_dict = {run: {'modifier': test_type_dict[TestType._run][run]['modifier'],
+                              'condition': Filter.from_dict(test_type_dict[TestType._run][run]['condition'])}
+                        for run in test_type_dict[TestType._run]}
+            test_type._run = run_dict
         return test_type
 
     @staticmethod
@@ -80,7 +84,8 @@ class TestType:
         return TestType(test_type, doc_fields)
 
     def save(self):
-        Base.Base().upsert_by_id(self.collection, self._test_type, self.to_dict())
+        Base.Base().upsert_by_id(self.collection, self._test_type,
+                                 self.to_dict())
 
     def get_all(self, additional_filter=None):
         query_filter = self.to_dict()
@@ -105,12 +110,13 @@ class TestType:
     def add_run_type(self, run_type, modifier, condition):
         if modifier not in TestType.modifiers:
             return False
-        if self._run == None:
+        if self._run is None:
             self._run = {}
         condition_filter = Filter.from_dict(condition)
         if not condition_filter:
             return False
-        self._run[run_type] = {'modifier': modifier, 'condition': condition_filter}
+        self._run[run_type] = {'modifier': modifier,
+                               'condition': condition_filter}
         self.save()
         return True
 

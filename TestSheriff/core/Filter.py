@@ -63,14 +63,18 @@ class Filter:
             if field not in status.to_dict():
                 return False
             value = status.to_dict()[eval(field_name)]
+        return_value = False
         if self._operator == 'EQUAL':
-            return value == condition
+            return_value = value == condition
         if self._operator == 'NOT EQUAL':
-            return value != condition
+            return_value = value != condition
         if self._operator == 'LESSER THAN':
-            return value < condition
+            return_value = value < condition
         if self._operator == 'GREATER THAN':
-            return value > condition
+            print(value)
+            print(condition)
+            return_value = value > condition
+        return return_value
 
     def check_statuses(self, status_list):
         status_list_filtered = []

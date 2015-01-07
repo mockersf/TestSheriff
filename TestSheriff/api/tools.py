@@ -35,5 +35,5 @@ def add_link_or_expand(dict_json, rel, endpoint, **kwargs):
             try:
                 res_expand = available_endpoints[endpoint](**kwargs)
                 dict_json[rel] = res_expand
-            except Exception as e:
+            except Exception:
                 dict_json[rel] = url

@@ -1,5 +1,3 @@
-import datetime
-
 from . import Base
 from .TestType import TestType
 
