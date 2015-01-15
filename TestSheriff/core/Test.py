@@ -3,7 +3,7 @@ import datetime
 from . import Base
 
 
-class Test:
+class Test(object):
     collection = 'test'
     _test_id = 'test_id'
     _owner = 'owner'
@@ -49,7 +49,7 @@ class Test:
         if additional_filter is not None:
             query_filter.update(additional_filter)
         cursor = Base.Base().get_all(self.collection, query_filter)
-        cursor._transform = lambda bt: Test.from_dict(bt)
+        cursor._transform = lambda bt: Test.from_dict(bt) # pylint: disable=unnecessary-lambda
         return cursor
 
     def get_all_ownerless(self):

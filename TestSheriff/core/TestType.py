@@ -2,7 +2,7 @@ from . import Base
 from .Filter import Filter
 
 
-class TestType:
+class TestType(object):
     collection = 'test_type'
     _test_type = 'type'
     _doc_fields = 'doc_fields'
@@ -92,7 +92,7 @@ class TestType:
         if additional_filter is not None:
             query_filter.update(additional_filter)
         cursor = Base.Base().get_all(self.collection, query_filter)
-        cursor._transform = lambda btt: TestType.from_dict(btt)
+        cursor._transform = lambda btt: TestType.from_dict(btt) # pylint: disable=unnecessary-lambda
         return cursor
 
     def get_one(self):
