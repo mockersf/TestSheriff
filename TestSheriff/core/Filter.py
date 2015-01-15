@@ -71,8 +71,6 @@ class Filter:
         if self._operator == 'LESSER THAN':
             return_value = value < condition
         if self._operator == 'GREATER THAN':
-            print(value)
-            print(condition)
             return_value = value > condition
         return return_value
 

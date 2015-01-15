@@ -30,7 +30,7 @@ def prepare_json_query(data):
 class Test_api_status(object):
     def setup_method(self, method):
         from core import Base
-        Base.base_prefix = 'test'
+        Base.BASE_PREFIX = 'test'
         from core.Status import Status
         self._base_status = Base.Base().get_base()[Status.collection]
         from core.Test import Test
@@ -209,7 +209,6 @@ class Test_api_status(object):
         i_all_page_api = 0
         datas_filtered = [datas[i] for i in datas if datas[i]['details']['p'] == '0']
         while next_page is not None:
-            print(next_page)
             rv = self.app_status.get(next_page)
             assert rv.status_code == 200
             res = json.loads(rv.data.decode('utf-8'))
@@ -228,7 +227,6 @@ class Test_api_status(object):
         i_all_page_api = 0
         datas_filtered = [datas[i] for i in datas if datas[i]['details']['p'] == '0' and datas[i]['details']['browser'] == 'Chrome']
         while next_page is not None:
-            print(next_page)
             rv = self.app_status.get(next_page)
             assert rv.status_code == 200
             res = json.loads(rv.data.decode('utf-8'))

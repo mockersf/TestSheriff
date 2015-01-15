@@ -34,7 +34,7 @@ def list_get(test_type=None):
     query_filter = {}
     if test_type is not None:
         query_filter = {TestCore._type: test_type}
-    tests = TestCore().get_all(additional_filter=query_filter)#(sort=[(StatusCore._on, Base.desc)])
+    tests = TestCore().get_all(additional_filter=query_filter)#(sort=[(StatusCore._on, Base.DESC)])
     tests = [prep_test(test) for test in tests]
     return tests
 
@@ -65,17 +65,17 @@ def test_get(test_id):
     statuses = {}
     lastStatuses = StatusCore.list(query_filter={StatusCore._test_id: test._test_id,
                                                  StatusCore._last: True},
-                                   sort=[(StatusCore._on, Base.desc)])
+                                   sort=[(StatusCore._on, Base.DESC)])
     if len(lastStatuses) != 0:
         statuses['last_status'] = lastStatuses[0]
     lastSuccess = StatusCore.list(query_filter={StatusCore._test_id: test._test_id,
                                                 StatusCore._status: 'SUCCESS'},
-                                  sort=[(StatusCore._on, Base.desc)])
+                                  sort=[(StatusCore._on, Base.DESC)])
     if len(lastSuccess) != 0:
         statuses['last_status_success'] = lastSuccess[0]
     lastFailure = StatusCore.list(query_filter={StatusCore._test_id: test._test_id,
                                                 StatusCore._status: 'FAILURE'},
-                                  sort=[(StatusCore._on, Base.desc)])
+                                  sort=[(StatusCore._on, Base.DESC)])
     if len(lastFailure) != 0:
         statuses['last_status_failure'] = lastFailure[0]
     test = prep_test(test, statuses)
@@ -84,12 +84,8 @@ def test_get(test_id):
 
 class Test(restful.Resource):
     def get(self, test_id):
-        try:
-            test = test_get(test_id)
-            return jsonify(result='Success', test=test)
-        except Exception as e:
-            print(e)
-            raise
+        test = test_get(test_id)
+        return jsonify(result='Success', test=test)
 
 
 def run_get(test_id, run_type):

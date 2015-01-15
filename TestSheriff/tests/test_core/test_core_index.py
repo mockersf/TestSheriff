@@ -14,7 +14,7 @@ def setup_module(module):
 class Test_core_index(object):
     def setup_method(self, method):
         from core import Base
-        Base.base_prefix = 'test'
+        Base.BASE_PREFIX = 'test'
         from core.Index import Index
 
     def teardown_method(self, method):

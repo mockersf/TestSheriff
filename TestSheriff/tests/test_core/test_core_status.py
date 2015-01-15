@@ -15,7 +15,7 @@ def setup_module(module):
 class Test_core_status(object):
     def setup_method(self, method):
         from core import Base
-        Base.base_prefix = 'test'
+        Base.BASE_PREFIX = 'test'
 
     def teardown_method(self, method):
         tools.db_drop()
@@ -182,11 +182,11 @@ class Test_core_status(object):
         test_id2 = str(uuid.uuid4())
         status2 = Status(test_id2, test_type, test_status, details=details)
         status2.save()
-        ast = Status.list(sort=[('on', Base.desc)])
+        ast = Status.list(sort=[('on', Base.DESC)])
         assert len(ast) == 2
         assert ast[0].to_dict() == Status(base_id=status2._id).get().to_dict()
         assert ast[1].to_dict() == Status(base_id=status1._id).get().to_dict()
-        ast = Status.list(sort=[('on', Base.asc)])
+        ast = Status.list(sort=[('on', Base.ASC)])
         assert len(ast) == 2
         assert ast[0].to_dict() == Status(base_id=status1._id).get().to_dict()
         assert ast[1].to_dict() == Status(base_id=status2._id).get().to_dict()
@@ -205,11 +205,11 @@ class Test_core_status(object):
             status.save()
             Base.Base().upsert_by_id(Status.collection, bson.ObjectId(status._id), {Status._on: datetime.datetime.now() - datetime.timedelta(seconds=nb - i + 1)})
             statuses[i] = status
-        ast = Status.list(sort=[('on', Base.asc)], page=1, nb=2)
+        ast = Status.list(sort=[('on', Base.ASC)], page=1, nb=2)
         assert len(ast) == 2
         assert ast[0].to_dict() == Status(base_id=statuses[2]._id).get().to_dict()
         assert ast[1].to_dict() == Status(base_id=statuses[3]._id).get().to_dict()
-        ast = Status.list(sort=[('on', Base.desc)], page=2, nb=3)
+        ast = Status.list(sort=[('on', Base.DESC)], page=2, nb=3)
         assert len(ast) == 3
         assert ast[0].to_dict() == Status(base_id=statuses[3]._id).get().to_dict()
         assert ast[1].to_dict() == Status(base_id=statuses[2]._id).get().to_dict()

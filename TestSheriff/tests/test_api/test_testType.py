@@ -28,7 +28,7 @@ def prepare_json_query(data):
 class Test_api_testType(object):
     def setup_method(self, method):
         from core import Base
-        Base.base_prefix = 'test'
+        Base.BASE_PREFIX = 'test'
         from core.Status import Status
         self._base_status = Base.Base().get_base()[Status.collection]
         from core.Test import Test

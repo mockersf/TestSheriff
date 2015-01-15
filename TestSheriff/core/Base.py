@@ -1,15 +1,15 @@
 import pymongo
-import bson
+from bson import ObjectId
 
-base_prefix = ''
-base_host = 'localhost'
-base_port = 27017
+BASE_PREFIX = ''
+BASE_HOST = 'localhost'
+BASE_PORT = 27017
 
-asc = pymongo.ASCENDING
-desc = pymongo.DESCENDING
+ASC = pymongo.ASCENDING
+DESC = pymongo.DESCENDING
 
 
-class TransformableCursor:
+class TransformableCursor(object): # pylint: disable=too-few-public-methods
     _cursor = None
     _transform = None
 
@@ -30,32 +30,46 @@ class TransformableCursor:
     def __getitem__(self, index):
         return self._transform(self._cursor[index])
 
+    def __delitem__(self, index):
+        raise Exception('Deleting does not work on this cursor')
 
-class Base:
+    def __setitem__(self, index, value):
+        raise Exception('Setting does not work on this cursor')
+
+
+class Base(object):
     _base = None
 
     def __init__(self):
-        connection = pymongo.MongoClient(base_host, base_port)
-        self._base = connection[base_prefix + 'TestSheriff']
+        connection = pymongo.MongoClient(BASE_HOST, BASE_PORT)
+        self._base = connection[BASE_PREFIX + 'TestSheriff']
 
     def get_base(self):
         return self._base
 
-    def get_one(self, collection, query_filter={}):
-        if '_id' in query_filter and bson.ObjectId.is_valid(query_filter['_id']):
-            query_filter['_id'] = bson.ObjectId(query_filter['_id'])
+    def get_one(self, collection, query_filter=None):
+        if query_filter is None:
+            query_filter = {}
+        if '_id' in query_filter and ObjectId.is_valid(query_filter['_id']):
+            query_filter['_id'] = ObjectId(query_filter['_id'])
         return self._base[collection].find_one(query_filter)
 
-    def get_all(self, collection, query_filter={}, sort=None, page=None, nb=None):
+    def get_all(self, collection, query_filter=None, # pylint: disable=R0913
+                sort=None, page=None, nb_item=None):
+        if query_filter is None:
+            query_filter = {}
         items = self._base[collection].find(query_filter)
         if sort is not None:
             items.sort(sort)
-        if page is not None and nb is not None and page >= 0 and nb >= 0:
-            items = items[page * nb:(page + 1) * nb]
+        if page is not None and nb_item is not None and \
+           page >= 0 and nb_item >= 0:
+            items = items[page * nb_item:(page + 1) * nb_item]
         return TransformableCursor(items)
 
     def upsert_by_id(self, collection, object_id, object_to_update):
-        res = self._base[collection].update({'_id': object_id}, {'$set': object_to_update}, upsert=True)
+        res = self._base[collection].update({'_id': object_id},
+                                            {'$set': object_to_update},
+                                            upsert=True)
         return res['err'] is None
 
     def insert(self, collection, object_to_insert):

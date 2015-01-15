@@ -60,7 +60,7 @@ class List(restful.Resource):
                 i_field += 1
             else:
                 next_field = False
-        statuses = StatusCore.list(query_filter=query_filter, sort=[(StatusCore._on, Base.desc)], page=args['page'], nb=args['nb_status'])
+        statuses = StatusCore.list(query_filter=query_filter, sort=[(StatusCore._on, Base.DESC)], page=args['page'], nb=args['nb_status'])
         statuses_preped = [prep_status(status) for status in statuses]
         pagination = {'_links': {}}
         if statuses.count() > len(statuses):
@@ -83,7 +83,6 @@ class List(restful.Resource):
         args = parser.parse_args()
         purge = True
         if args['purge'] is not None:
-            print('argparse : {0}'.format(args['purge']))
             if args['purge'].lower() == 'false':
                 purge = False
             elif args['purge'].lower() == 'true':
