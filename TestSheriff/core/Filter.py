@@ -1,7 +1,7 @@
-import datetime
+import datetime # pylint: disable=unused-import
 
 
-class Filter:
+class Filter(object):
     _operator = None
     _part1 = None
     _part2 = None
@@ -20,30 +20,32 @@ class Filter:
     def from_dict(filter_dict):
         if not isinstance(filter_dict, dict):
             return False
-        fd = filter_dict
-        if 'operator' not in fd:
+        fdict = filter_dict
+        if 'operator' not in fdict:
             return False
-        if fd['operator'] in Filter.operators_final:
-            if 'field' in fd and 'value' in fd:
-                return Filter(fd['operator'], fd['field'], fd['value'])
-        if fd['operator'] in Filter.operators_compound:
-            if 'part1' not in fd or 'part2' not in fd:
+        if fdict['operator'] in Filter.operators_final:
+            if 'field' in fdict and 'value' in fdict:
+                return Filter(fdict['operator'], fdict['field'], fdict['value'])
+        if fdict['operator'] in Filter.operators_compound:
+            if 'part1' not in fdict or 'part2' not in fdict:
                 return False
-            p1 = False
-            p2 = False
-            if isinstance(fd['part1'], dict):
-                p1 = Filter.from_dict(fd['part1'])
-            if isinstance(fd['part2'], dict):
-                p2 = Filter.from_dict(fd['part2'])
-            if p1 and p2:
-                return Filter(fd['operator'], p1, p2)
+            part1 = False
+            part2 = False
+            if isinstance(fdict['part1'], dict):
+                part1 = Filter.from_dict(fdict['part1'])
+            if isinstance(fdict['part2'], dict):
+                part2 = Filter.from_dict(fdict['part2'])
+            if part1 and part2:
+                return Filter(fdict['operator'], part1, part2)
         return False
 
     def to_dict(self):
         if self._operator in Filter.operators_final:
             return {'operator': self._operator, 'field': self._part1, 'value': self._part2}
         if self._operator in Filter.operators_compound:
-            return {'operator': self._operator, 'part1': self._part1.to_dict(), 'part2': self._part2.to_dict()}
+            return {'operator': self._operator,
+                    'part1': self._part1.to_dict(),
+                    'part2': self._part2.to_dict()}
 
     def check_status(self, status):
         from .Status import Status
@@ -53,7 +55,7 @@ class Filter:
             return self._part1.check_status(status) and self._part2.check_status(status)
         try:
             condition = eval(self._part2)
-        except:
+        except NameError:
             condition = self._part2
         field_name = self._part1
         if field_name[:17] == 'Status._details[\'':
