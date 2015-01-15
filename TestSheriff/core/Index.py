@@ -1,7 +1,8 @@
 from . import Base
 from .TestType import TestType
 
-class Index:
+
+class Index(object):
     collection = 'test_index'
     _test_type = 'type'
     _field = 'field'
@@ -13,7 +14,9 @@ class Index:
         self._values = values
 
     def __repr__(self):
-        return '<Index {0} ({1}) : {2} values>'.format(self._field, self._test_type, len(self._values) if self._values is not None else 0)
+        return '<Index {0} ({1}) : {2} values>'\
+            .format(self._field, self._test_type,
+                    len(self._values) if self._values is not None else 0)
 
     def to_dict(self):
         dict_of_self = {}
