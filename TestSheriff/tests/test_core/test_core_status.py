@@ -205,11 +205,11 @@ class Test_core_status(object):
             status.save()
             Base.Base().upsert_by_id(Status.collection, bson.ObjectId(status._id), {Status._on: datetime.datetime.now() - datetime.timedelta(seconds=nb - i + 1)})
             statuses[i] = status
-        ast = Status.list(sort=[('on', Base.ASC)], page=1, nb=2)
+        ast = Status.list(sort=[('on', Base.ASC)], page=1, nb_item=2)
         assert len(ast) == 2
         assert ast[0].to_dict() == Status(base_id=statuses[2]._id).get().to_dict()
         assert ast[1].to_dict() == Status(base_id=statuses[3]._id).get().to_dict()
-        ast = Status.list(sort=[('on', Base.DESC)], page=2, nb=3)
+        ast = Status.list(sort=[('on', Base.DESC)], page=2, nb_item=3)
         assert len(ast) == 3
         assert ast[0].to_dict() == Status(base_id=statuses[3]._id).get().to_dict()
         assert ast[1].to_dict() == Status(base_id=statuses[2]._id).get().to_dict()

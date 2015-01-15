@@ -60,7 +60,7 @@ class List(restful.Resource):
                 i_field += 1
             else:
                 next_field = False
-        statuses = StatusCore.list(query_filter=query_filter, sort=[(StatusCore._on, Base.DESC)], page=args['page'], nb=args['nb_status'])
+        statuses = StatusCore.list(query_filter=query_filter, sort=[(StatusCore._on, Base.DESC)], page=args['page'], nb_item=args['nb_status'])
         statuses_preped = [prep_status(status) for status in statuses]
         pagination = {'_links': {}}
         if statuses.count() > len(statuses):

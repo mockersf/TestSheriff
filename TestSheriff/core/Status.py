@@ -7,10 +7,10 @@ from .TestType import TestType
 from .Index import Index
 
 
-statuses = ['SUCCESS', 'FAILURE', 'UNKNOWN', 'CUSTOM', 'DEPRECATED']
+STATUSES = ['SUCCESS', 'FAILURE', 'UNKNOWN', 'CUSTOM', 'DEPRECATED']
 
 
-class Status:
+class Status(object):
     collection = 'status'
     _test_id = 'test_id'
     _type = 'type'
@@ -21,7 +21,7 @@ class Status:
     _id = '_id'
 
 
-    def __init__(self, test_id=None, test_type=None, status=None, on=None,
+    def __init__(self, test_id=None, test_type=None, status=None, on=None, # pylint: disable=too-many-arguments
                  details=None, last=None, base_id=None):
         self._test_id = test_id
         self._type = test_type
@@ -73,9 +73,11 @@ class Status:
         return status
 
     @staticmethod
-    def list(query_filter={}, sort=None, page=None, nb=None):
-        cursor = Base.Base().get_all(Status.collection, query_filter, sort, page, nb)
-        cursor._transform = lambda bs: Status.from_dict(bs)
+    def list(query_filter=None, sort=None, page=None, nb_item=None):
+        if query_filter is None:
+            query_filter = {}
+        cursor = Base.Base().get_all(Status.collection, query_filter, sort, page, nb_item)
+        cursor._transform = lambda bs: Status.from_dict(bs) # pylint: disable=unnecessary-lambda
         return cursor
 
     def save(self):
@@ -83,7 +85,7 @@ class Status:
         TestType.from_status(self).save()
         Index.index(self)
         self._on = datetime.datetime.now()
-        if self._status not in statuses:
+        if self._status not in STATUSES:
             if self._details is None:
                 self._details = {}
             if 'original_status' not in self._details:
@@ -104,7 +106,8 @@ class Status:
         return Status.from_dict(res) if res is not None else None
 
     def update_last(self):
-        Base.Base().update(self.collection, {Status._test_id: self._test_id, Status._last: True}, {Status._last: False})
+        Base.Base().update(self.collection, {Status._test_id: self._test_id, Status._last: True},
+                           {Status._last: False})
 
     def save_and_update(self):
         self.update_last()
@@ -115,8 +118,8 @@ class Status:
         Base.Base().remove_by_id(self.collection, bson.ObjectId(self._id))
 
     def should_i_run(self, run_type='default'):
-        tt = TestType.from_status(self).get_one()
-        run = tt.run(run_type)
+        test_type = TestType.from_status(self).get_one()
+        run = test_type.run(run_type)
         if run is None:
             return None
         condition = run['condition']
@@ -129,10 +132,10 @@ class Status:
             return len(status_list_filtered) == len(status_list)
 
     def purge(self):
-        tt = TestType.from_status(self).get_one()
-        if tt is None:
+        test_type = TestType.from_status(self).get_one()
+        if test_type is None:
             return {'nb_removed': 0}
-        run = tt.purge()
+        run = test_type.purge()
         condition = run['condition']
         action = run['action']
         status_list = Status.list({Status._test_id: self._test_id})
