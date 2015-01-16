@@ -1,8 +1,8 @@
-from . import Base
 from .Filter import Filter
+from .CoreObject import CoreObject
 
 
-class TestType(object):
+class TestType(CoreObject):
     collection = 'test_type'
     _test_type = 'type'
     _doc_fields = 'doc_fields'
@@ -30,6 +30,7 @@ class TestType(object):
     actions = ['REMOVE']
 
     def __init__(self, test_type=None, doc_fields=None, doc_fields_to_index=None):
+        super(TestType, self).__init__()
         self._test_type = test_type
         self._doc_fields = doc_fields
         self._doc_fields_to_index = doc_fields_to_index
@@ -40,13 +41,7 @@ class TestType(object):
         return '<TestType {0} ({1})>'.format(self._test_type, self._doc_fields)
 
     def to_dict(self):
-        dict_of_self = {}
-        if self._test_type is not None:
-            dict_of_self[TestType._test_type] = self._test_type
-        if self._doc_fields is not None:
-            dict_of_self[TestType._doc_fields] = self._doc_fields
-        if self._doc_fields_to_index is not None:
-            dict_of_self[TestType._doc_fields_to_index] = self._doc_fields_to_index
+        dict_of_self = super(TestType, self).to_dict()
         if self._purge is not None:
             dict_of_self[TestType._purge] = {'action': self._purge['action'],
                                              'condition': self._purge['condition'].to_dict()}
@@ -56,15 +51,9 @@ class TestType(object):
                                            for run in self._run}
         return dict_of_self
 
-    @staticmethod
-    def from_dict(test_type_dict):
-        test_type = TestType()
-        if TestType._test_type in test_type_dict:
-            test_type._test_type = test_type_dict[TestType._test_type]
-        if TestType._doc_fields in test_type_dict:
-            test_type._doc_fields = test_type_dict[TestType._doc_fields]
-        if TestType._doc_fields_to_index in test_type_dict:
-            test_type._doc_fields_to_index = test_type_dict[TestType._doc_fields_to_index]
+    @classmethod
+    def from_dict(cls, test_type_dict):
+        test_type = super(TestType, cls).from_dict(test_type_dict)
         if TestType._purge in test_type_dict:
             test_type._purge = {'action': test_type_dict[TestType._purge]['action'],
                                 'condition': Filter.from_dict(test_type_dict[TestType._purge]['condition'])}
@@ -84,21 +73,7 @@ class TestType(object):
         return TestType(test_type, doc_fields)
 
     def save(self):
-        Base.Base().upsert_by_id(self.collection, self._test_type,
-                                 self.to_dict())
-
-    def get_all(self, additional_filter=None):
-        query_filter = self.to_dict()
-        if additional_filter is not None:
-            query_filter.update(additional_filter)
-        cursor = Base.Base().get_all(self.collection, query_filter)
-        cursor._transform = lambda btt: TestType.from_dict(btt) # pylint: disable=unnecessary-lambda
-        return cursor
-
-    def get_one(self):
-        query_filter = self.to_dict()
-        res = Base.Base().get_one(self.collection, query_filter)
-        return TestType.from_dict(res) if res is not None else None
+        self.save_by_id(self._test_type)
 
     def run(self, run_type='default'):
         if self._run is not None and run_type in self._run:

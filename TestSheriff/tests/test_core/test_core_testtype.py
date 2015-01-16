@@ -67,12 +67,12 @@ class Test_core_testtype(object):
         doc2 = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
         test_type2 = TestType(my_type2, doc2)
         test_type2.save()
-        types = TestType().get_all()
+        types = TestType.get_all()
         assert len(types) == 2
-        types = TestType(my_type2).get_all()
+        types = TestType.get_all({TestType._test_type: my_type2})
         assert len(types) == 1
         assert types[0]._doc_fields == doc2
-        types = TestType().get_all(additional_filter={TestType._test_type: my_type1})
+        types = TestType.get_all(query_filter={TestType._test_type: my_type1})
         assert len(types) == 1
         assert types[0]._doc_fields == doc1
 
@@ -87,10 +87,10 @@ class Test_core_testtype(object):
         doc2 = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
         test_type2 = TestType(my_type2, doc2)
         test_type2.save()
-        type2 = TestType(my_type2).get_one()
+        type2 = TestType.get_one({TestType._test_type: my_type2})
         assert type2._doc_fields == doc2
         assert type2._test_type == my_type2
-        type1 = TestType(my_type1).get_one()
+        type1 = TestType.get_one({TestType._test_type: my_type1})
         assert type1._doc_fields == doc1
         assert type1._test_type == my_type1
 

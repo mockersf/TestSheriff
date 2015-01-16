@@ -34,7 +34,7 @@ def list_get(test_type=None):
     query_filter = {}
     if test_type is not None:
         query_filter = {TestCore._type: test_type}
-    tests = TestCore().get_all(additional_filter=query_filter)#(sort=[(StatusCore._on, Base.DESC)])
+    tests = TestCore.get_all(query_filter)#(sort=[(StatusCore._on, Base.DESC)])
     tests = [prep_test(test) for test in tests]
     return tests
 
@@ -59,7 +59,7 @@ class List(restful.Resource):
 
 
 def test_get(test_id):
-    test = TestCore(test_id=test_id).get_one()
+    test = TestCore.get_one({TestCore._test_id:test_id})
     if test is None:
         abort(404)
     statuses = {}

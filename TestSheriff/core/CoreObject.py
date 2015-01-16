@@ -1,14 +1,17 @@
 from . import Base
 
 
-class CoreObject:
+class CoreObject(object):
     collection = 'no_collection'
 
+    def __init__(self):
+        pass
+
     @classmethod
-    def get_all(cls, query_filter=None):
+    def get_all(cls, query_filter=None, sort=None, page=None, nb_item=None):
         if query_filter is None:
             query_filter = {}
-        cursor = Base.Base().get_all(cls.collection, query_filter)
+        cursor = Base.Base().get_all(cls.collection, query_filter, sort, page, nb_item)
         cursor._transform = lambda bt: cls.from_dict(bt) # pylint: disable=unnecessary-lambda
         return cursor
 

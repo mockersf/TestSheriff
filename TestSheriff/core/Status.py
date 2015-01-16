@@ -5,12 +5,13 @@ from . import Base
 from .Test import Test
 from .TestType import TestType
 from .Index import Index
+from .CoreObject import CoreObject
 
 
 STATUSES = ['SUCCESS', 'FAILURE', 'UNKNOWN', 'CUSTOM', 'DEPRECATED']
 
 
-class Status(object):
+class Status(CoreObject):
     collection = 'status'
     _test_id = 'test_id'
     _type = 'type'
@@ -23,6 +24,7 @@ class Status(object):
 
     def __init__(self, test_id=None, test_type=None, status=None, on=None, # pylint: disable=too-many-arguments
                  details=None, last=None, base_id=None):
+        super(Status, self).__init__()
         self._test_id = test_id
         self._type = test_type
         self._on = on
@@ -36,49 +38,21 @@ class Status(object):
                     .format(self._test_id, self._type, self._status, self._on)
 
     def to_dict(self):
-        dict_of_self = {}
-        if self._test_id is not None:
-            dict_of_self[Status._test_id] = self._test_id
-        if self._type is not None:
-            dict_of_self[Status._type] = self._type
+        dict_of_self = super(Status, self).to_dict()
         if self._on is not None:
             dict_of_self[Status._on] = self._on.replace(microsecond=0)
-        if self._status is not None:
-            dict_of_self[Status._status] = self._status
-        if self._details is not None:
-            dict_of_self[Status._details] = self._details
-        if self._last is not None:
-            dict_of_self[Status._last] = self._last
-        if self._id is not None:
-            dict_of_self[Status._id] = self._id
         return dict_of_self
 
-    @staticmethod
-    def from_dict(status_dict):
-        status = Status()
-        if Status._test_id in status_dict:
-            status._test_id = status_dict[Status._test_id]
-        if Status._type in status_dict:
-            status._type = status_dict[Status._type]
-        if Status._on in status_dict:
-            status._on = status_dict[Status._on]
-        if Status._status in status_dict:
-            status._status = status_dict[Status._status]
-        if Status._details in status_dict:
-            status._details = status_dict[Status._details]
-        if Status._last in status_dict:
-            status._last = status_dict[Status._last]
+    @classmethod
+    def from_dict(cls, status_dict):
+        status = super(Status, cls).from_dict(status_dict)
         if Status._id in status_dict:
             status._id = str(status_dict[Status._id])
         return status
 
     @staticmethod
     def list(query_filter=None, sort=None, page=None, nb_item=None):
-        if query_filter is None:
-            query_filter = {}
-        cursor = Base.Base().get_all(Status.collection, query_filter, sort, page, nb_item)
-        cursor._transform = lambda bs: Status.from_dict(bs) # pylint: disable=unnecessary-lambda
-        return cursor
+        return Status.get_all(query_filter, sort, page, nb_item)
 
     def save(self):
         Test(test_id=self._test_id, test_type=self._type).save()
@@ -118,7 +92,7 @@ class Status(object):
         Base.Base().remove_by_id(self.collection, bson.ObjectId(self._id))
 
     def should_i_run(self, run_type='default'):
-        test_type = TestType.from_status(self).get_one()
+        test_type = TestType.get_one(TestType.from_status(self).to_dict())
         run = test_type.run(run_type)
         if run is None:
             return None
@@ -132,7 +106,7 @@ class Status(object):
             return len(status_list_filtered) == len(status_list)
 
     def purge(self):
-        test_type = TestType.from_status(self).get_one()
+        test_type = TestType.get_one(TestType.from_status(self).to_dict())
         if test_type is None:
             return {'nb_removed': 0}
         run = test_type.purge()

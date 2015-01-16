@@ -127,11 +127,11 @@ class Test_core_index(object):
 #        values2 = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
         index2 = Index(my_type2, field2, values1)
         index2.save()
-        indexes = Index().get_all()
+        indexes = Index.get_all()
         assert len(indexes) == 2
-        indexes = Index(test_type=my_type1).get_all()
+        indexes = Index.get_all({Index._test_type: my_type1})
         assert len(indexes) == 1
-        indexes = Index(values=values1).get_all()
+        indexes = Index.get_all({Index._values: values1})
         assert len(indexes) == 2
         indexes = Index().get_all({'type': my_type1})
         assert len(indexes) == 1

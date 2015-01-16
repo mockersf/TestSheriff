@@ -60,7 +60,7 @@ class Test_core_test(object):
         Test(test_id2, owner, test_type).save()
         Test(test_id3, owner2, test_type).save()
         test = Test(owner=owner)
-        atl = test.get_all()
+        atl = Test.get_all(test.to_dict())
         assert len(atl) == 2
         assert atl[0]._test_id == test_id1
         assert atl[1]._test_id == test_id2
@@ -77,17 +77,17 @@ class Test_core_test(object):
         Test(test_id2, owner1, test_type).save()
         Test(test_id2, owner2, test_type).save()
         test = Test(test_id=test_id1)
-        one = test.get_one()
+        one = Test.get_one(test.to_dict())
         assert one is not None
         assert one._test_id == test_id1
         assert one._owner == owner1
         test = Test(test_id=test_id2)
-        one = test.get_one()
+        one = Test.get_one(test.to_dict())
         assert one._test_id == test_id2
         assert one._owner == owner2
         assert one is not None
         test = Test(test_id=test_id3)
-        one = test.get_one()
+        one = Test.get_one(test.to_dict())
         assert one is None
 
     def test_get_all_ownerless(self):

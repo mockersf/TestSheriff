@@ -35,13 +35,13 @@ def prep_test_type(test_type):
 
 class List(restful.Resource):
     def get(self):
-        test_types = TestTypeCore().get_all()
+        test_types = TestTypeCore.get_all()
         test_types = [prep_test_type(test_type) for test_type in test_types]
         return jsonify(result='Success', test_types=test_types, count=len(test_types))
 
 
 def testtype_get(test_type):
-    testType = TestTypeCore(test_type=test_type).get_one()
+    testType = TestTypeCore.get_one({TestTypeCore._test_type: test_type})
     if testType is None:
         abort(404)
     testType = prep_test_type(testType)
@@ -53,7 +53,7 @@ class TestType(restful.Resource):
         testType = testtype_get(test_type)
         return jsonify(result='Success', test_type=testType)
     def patch(self, test_type):
-        testType = TestTypeCore(test_type=test_type).get_one()
+        testType = TestTypeCore.get_one({TestTypeCore._test_type: test_type})
         if testType is None:
             abort(404)
         parser = reqparse.RequestParser()
@@ -76,17 +76,17 @@ def prep_index(index):
 
 class IndexList(restful.Resource):
     def get(self, test_type):
-        testType = TestTypeCore(test_type=test_type).get_one()
+        testType = TestTypeCore.get_one({TestTypeCore._test_type: test_type})
         if testType is None:
             abort(404)
-        indexes = IndexCore(test_type=test_type).get_all()
+        indexes = IndexCore.get_all({IndexCore._test_type: test_type})
         indexes = [prep_index(index) for index in indexes]
         return jsonify(result='Success', indexes=indexes, count=len(indexes))
 
 
 class Index(restful.Resource):
     def get(self, test_type, field):
-        testType = TestTypeCore(test_type=test_type).get_one()
+        testType = TestTypeCore.get_one({TestTypeCore._test_type: test_type})
         if testType is None:
             abort(404)
         index = IndexCore(test_type=test_type, field=field).get()
@@ -97,7 +97,7 @@ class Index(restful.Resource):
 
 
 def run_get(test_type, run_type):
-    testType = TestTypeCore(test_type=test_type).get_one()
+    testType = TestTypeCore.get_one({TestTypeCore._test_type: test_type})
     if testType is None:
         abort(404)
     run = testType.run(run_type)
@@ -111,7 +111,7 @@ def run_get(test_type, run_type):
 
 
 def runlist_get(test_type):
-    testType = TestTypeCore(test_type=test_type).get_one()
+    testType = TestTypeCore.get_one({TestTypeCore._test_type: test_type})
     if testType is None:
         abort(404)
     runs = [] if testType._run is None else [run for run in testType._run]
@@ -129,7 +129,7 @@ class RunList(restful.Resource):
         run_type = data['run_type']
         modifier = data['modifier']
         condition = data['condition']
-        testType = TestTypeCore(test_type=test_type).get_one()
+        testType = TestTypeCore.get_one({TestTypeCore._test_type: test_type})
         if testType is None:
             abort(404)
         if modifier not in TestTypeCore.modifiers:
@@ -147,7 +147,7 @@ class Run(restful.Resource):
 
 
 def purge_get(test_type):
-    testType = TestTypeCore(test_type=test_type).get_one()
+    testType = TestTypeCore.get_one({TestTypeCore._test_type: test_type})
     if testType is None:
         abort(404)
     purge = testType.purge()
@@ -166,7 +166,7 @@ class Purge(restful.Resource):
         data = request.get_json()
         action = data['action']
         condition = data['condition']
-        testType = TestTypeCore(test_type=test_type).get_one()
+        testType = TestTypeCore.get_one({TestTypeCore._test_type: test_type})
         if testType is None:
             abort(404)
         if action not in TestTypeCore.actions:
