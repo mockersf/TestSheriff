@@ -1,7 +1,5 @@
 import os, sys
 
-from flask import Flask, url_for
-
 
 def setup_module(module):
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
@@ -12,14 +10,8 @@ class Test_ui(object):
         pass
         from core import Base
         Base.BASE_PREFIX = 'test'
-#        app = Flask(__name__)
         import ui.ui
         self.app_test = ui.ui.app.test_client()
-#        app_api = restful.Api(app)
-#        import api.test
-#        api.test.add_test(app_api, root='/', version='test')
-#        self.app_test = app.test_client()
-
 
     def teardown_method(self, method):
         from core import Base
