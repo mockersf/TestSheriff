@@ -83,3 +83,17 @@ class Test_api(object):
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
         assert type(res['status']['test']) in [type('String'), type(u'Unicode')]
+
+    def test_new_index_keeps_old_value(self):
+        my_id1 = str(uuid.uuid4())
+        data1 = {'test_id': my_id1, 'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master', 'f1': 'v1'}, 'type': 'test_tool'}
+        json_query = prepare_json_query(data1)
+        self.app.post('/api/v1/statuses', headers=json_query['headers'], data=json_query['json'])
+        data2 = {'test_id': my_id1, 'status': 'SUCCESS', 'details': {'browser': 'Chrome', 'environment': 'master', 'f2': 'v2'}, 'type': 'test_tool'}
+        json_query = prepare_json_query(data2)
+        self.app.post('/api/v1/statuses', headers=json_query['headers'], data=json_query['json'])
+        rv = self.app.get('/api/v1/test_types/test_tool')
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        assert sorted(res['test_type']['doc_fields']) == sorted(['environment', 'browser', 'f1', 'f2'])
+

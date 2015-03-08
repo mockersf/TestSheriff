@@ -67,10 +67,18 @@ class TestType(CoreObject):
     @staticmethod
     def from_status(status):
         test_type = status._type
-        doc_fields = None
-        if status._details is not None:
-            doc_fields = [key for key in status._details]
-        return TestType(test_type, doc_fields)
+        exist = TestType.get_one({TestType._test_type: test_type})
+        if exist:
+            if status._details is not None:
+                fields_base = exist._doc_fields if exist._doc_fields is not None else []
+                updated_set = set(fields_base).union([key for key in status._details])
+                exist._doc_fields = [field for field in updated_set]
+            return exist
+        else:
+            doc_fields = None
+            if status._details is not None:
+                doc_fields = [key for key in status._details]
+            return TestType(test_type, doc_fields)
 
     def save(self):
         self.save_by_id(self._test_type)
