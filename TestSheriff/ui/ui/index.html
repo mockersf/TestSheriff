@@ -29,6 +29,7 @@
           <div ng-repeat="(key, value) in ls.filter" style="display: inline"><button type="button" class="btn navbar-btn" ng-click="ls.toggle_filter(key);" ng-class="{'btn-warning': value['enabled'], 'btn-default': !value['enabled']}">{{key}} : {{value['value'] | limitTo: 20}}{{value['value'].length > 20 ? '...' : ''}}</button> </div>
           <button type="button" class="btn btn-info navbar-btn" ng-click="ls.add_filter_open()">Add Filter</button>
           <button type="button" class="btn btn-success navbar-btn navbar-right" ng-click="ls.get_last();">Get Last Statuses</button>
+          <input type="checkbox" class="navbar-right" ng-model="ls.continuous" ng-click="ls.continuous_refresh()">
         </div>
       </nav>
       <div class="row">

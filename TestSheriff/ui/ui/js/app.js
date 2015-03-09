@@ -9,11 +9,13 @@ nb_item = 15;
 
   var app = angular.module('statuses', ['infinite-scroll', 'ui.bootstrap']);
 
-  app.controller('last_statuses', [ '$http', '$modal', '$anchorScroll', function($http, $modal, $anchorScroll){
+  app.controller('last_statuses', [ '$http', '$modal', '$anchorScroll', '$interval', function($http, $modal, $anchorScroll, $interval){
 
     var self = this;
     this.statuses = [];
     this.filter = false;
+    this.continuous = false;
+    this.continuous_interval = false
     this.next_page = "";
     this.loaded_pages = []
 
@@ -22,20 +24,28 @@ nb_item = 15;
       this.get_last_filtered()
     };
 
+    this.continuous_refresh = function() {
+      if (this.continuous) {
+        this.continuous_interval = $interval(this.get_last_filtered, 2000);
+      } else {
+        $interval.cancel(this.continuous_interval);
+      }
+    }
+
     this.get_last_filtered = function() {
       var filter_query = '';
       var i_field = 1;
-      for (var key in this.filter) {
-        if (this.filter[key]['enabled']) {
-          if (this.filter[key]['is_details']) {
-            filter_query += '&field' + i_field + '=' + key + '&value' + i_field + '=' + this.filter[key]['value'];
+      for (var key in self.filter) {
+        if (self.filter[key]['enabled']) {
+          if (self.filter[key]['is_details']) {
+            filter_query += '&field' + i_field + '=' + key + '&value' + i_field + '=' + self.filter[key]['value'];
             i_field++;
           } else {
-            filter_query += '&' + key + '=' + this.filter[key]['value'];
+            filter_query += '&' + key + '=' + self.filter[key]['value'];
           }
         }
       }
-      this.loaded_pages = [];
+      self.loaded_pages = [];
       $anchorScroll();
       $http.get(host + root + 'statuses?nb_status=' + nb_item + filter_query)
       .success(function(data){
@@ -50,10 +60,10 @@ nb_item = 15;
     };
 
     this.get_next_page = function() {
-      next_page = this.next_page;
-      if ((next_page != "") && (this.loaded_pages.indexOf(next_page) == -1)) {
+      next_page = self.next_page;
+      if ((next_page != "") && (self.loaded_pages.indexOf(next_page) == -1)) {
         this.loaded_pages.push(next_page);
-        $http.get(this.next_page)
+        $http.get(self.next_page)
         .success(function(data){
           Array.prototype.push.apply(self.statuses, data.statuses);
           if (data['pagination'] && data['pagination']['next']) {
