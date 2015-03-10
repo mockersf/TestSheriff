@@ -83,7 +83,14 @@ nb_item = 15;
     };
 
     this.toggle_filter = function(key) {
-      this.filter[key]['enabled'] = !this.filter[key]['enabled'];
+      if (this.filter[key]['value'].substring(0, 1) == '!') {
+        this.filter[key]['enabled'] = false;
+        this.filter[key]['value'] = this.filter[key]['value'].substring(1);
+      } else if (this.filter[key]['enabled']) {
+        this.filter[key]['value'] = '!' + this.filter[key]['value'];
+      } else {
+        this.filter[key]['enabled'] = true;
+      }
       this.get_last_filtered()
     };
 
@@ -102,9 +109,8 @@ nb_item = 15;
     };
 
     this.remove_status = function(status) {
-      console.log(status['_links']['self']['href'])
       $http.delete(status['_links']['self']['href']);
-      self.get_last_filtered()
+      self.get_last_filtered();
     };
 
   }]);
