@@ -132,7 +132,7 @@ class Test_api_status(object):
             status = random.choice(['SUCCESS', 'FAILURE'])
             my_id = random.choice([my_id1, my_id2])
             my_type = random.choice([my_type1, my_type2])
-            my_browser = random.choice(['Chrome', 'Firefox'])
+            my_browser = random.choice(['Chrome', 'Firefox', 'IE'])
             data = {'test_id': my_id, 'status': status, 'type': my_type,
                     'details': {'browser': my_browser, 'environment': 'master', 'i': i, 'p': '{0}'.format(i % 2), 'random': str(uuid.uuid4())}}
             datas[i] = data
@@ -174,6 +174,16 @@ class Test_api_status(object):
         for i in range(res['count']):
             assert res['statuses'][i]['test_id'] == my_id1
             assert res['statuses'][i]['details'] == datas_filtered[len(datas_filtered) - i - 1]['details']
+        rv = self.app_status.get('/test/statuses?test_id=!{0}'.format(my_id1))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        datas_filtered = [datas[i] for i in datas if datas[i]['test_id'] != my_id1]
+        assert res['total'] == len(datas_filtered)
+        assert res['count'] == len(datas_filtered)
+        assert len(res['statuses']) == len(datas_filtered)
+        for i in range(res['count']):
+            assert res['statuses'][i]['test_id'] != my_id1
+            assert res['statuses'][i]['details'] == datas_filtered[len(datas_filtered) - i - 1]['details']
         rv = self.app_status.get('/test/statuses?type={0}'.format(my_type1))
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
@@ -183,6 +193,16 @@ class Test_api_status(object):
         assert len(res['statuses']) == len(datas_filtered)
         for i in range(res['count']):
             assert res['statuses'][i]['type'] == my_type1
+            assert res['statuses'][i]['details'] == datas_filtered[len(datas_filtered) - i - 1]['details']
+        rv = self.app_status.get('/test/statuses?type=!{0}'.format(my_type1))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        datas_filtered = [datas[i] for i in datas if datas[i]['type'] != my_type1]
+        assert res['total'] == len(datas_filtered)
+        assert res['count'] == len(datas_filtered)
+        assert len(res['statuses']) == len(datas_filtered)
+        for i in range(res['count']):
+            assert res['statuses'][i]['type'] != my_type1
             assert res['statuses'][i]['details'] == datas_filtered[len(datas_filtered) - i - 1]['details']
         rv = self.app_status.get('/test/statuses?status={0}'.format('SUCCESS'))
         assert rv.status_code == 200
@@ -194,6 +214,16 @@ class Test_api_status(object):
         for i in range(res['count']):
             assert res['statuses'][i]['status'] == 'SUCCESS'
             assert res['statuses'][i]['details'] == datas_filtered[len(datas_filtered) - i - 1]['details']
+        rv = self.app_status.get('/test/statuses?status=!{0}'.format('SUCCESS'))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        datas_filtered = [datas[i] for i in datas if datas[i]['status'] != 'SUCCESS']
+        assert res['total'] == len(datas_filtered)
+        assert res['count'] == len(datas_filtered)
+        assert len(res['statuses']) == len(datas_filtered)
+        for i in range(res['count']):
+            assert res['statuses'][i]['status'] != 'SUCCESS'
+            assert res['statuses'][i]['details'] == datas_filtered[len(datas_filtered) - i - 1]['details']
         rv = self.app_status.get('/test/statuses?field={0}&value={1}'.format('p', '0'))
         assert rv.status_code == 200
         res = json.loads(rv.data.decode('utf-8'))
@@ -203,6 +233,16 @@ class Test_api_status(object):
         assert len(res['statuses']) == len(datas_filtered)
         for i in range(res['count']):
             assert res['statuses'][i]['details']['p'] == '0'
+            assert res['statuses'][i]['details'] == datas_filtered[len(datas_filtered) - i - 1]['details']
+        rv = self.app_status.get('/test/statuses?field={0}&value=!{1}'.format('p', '0'))
+        assert rv.status_code == 200
+        res = json.loads(rv.data.decode('utf-8'))
+        datas_filtered = [datas[i] for i in datas if datas[i]['details']['p'] != '0']
+        assert res['total'] == len(datas_filtered)
+        assert res['count'] == len(datas_filtered)
+        assert len(res['statuses']) == len(datas_filtered)
+        for i in range(res['count']):
+            assert res['statuses'][i]['details']['p'] != '0'
             assert res['statuses'][i]['details'] == datas_filtered[len(datas_filtered) - i - 1]['details']
         next_page = '/test/statuses?field={0}&value={1}&page=0&nb_status=5'.format('p', '0')
         s_all_page_api = []
@@ -240,6 +280,25 @@ class Test_api_status(object):
             else:
                 next_page = None
         assert len(s_all_page_api) == len(datas_filtered)
+        next_page = '/test/statuses?field1={0}&value1={1}&field2={2}&value2=!{3}&page=0&nb_status=12'.format('p', '0', 'browser', 'Chrome')
+        s_all_page_api = []
+        i_all_page_api = 0
+        datas_filtered = [datas[i] for i in datas if datas[i]['details']['p'] == '0' and datas[i]['details']['browser'] != 'Chrome']
+        while next_page is not None:
+            rv = self.app_status.get(next_page)
+            assert rv.status_code == 200
+            res = json.loads(rv.data.decode('utf-8'))
+            for i in range(res['count']):
+                assert res['statuses'][i]['details']['p'] == '0'
+                assert res['statuses'][i]['details'] == datas_filtered[len(datas_filtered) - i_all_page_api - 1]['details']
+                s_all_page_api.append(res['statuses'][i])
+                i_all_page_api += 1
+            if 'next' in res['pagination']:
+                next_page = res['pagination']['next']['href']
+            else:
+                next_page = None
+        assert len(s_all_page_api) == len(datas_filtered)
+
 
 
     def test_post_collection_purge(self):

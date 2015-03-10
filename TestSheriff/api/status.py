@@ -38,23 +38,38 @@ class List(restful.Resource):
         query_filter = {}
         query = {'page': args['page'], 'nb_status': args['nb_status']}
         if args['test_id'] is not None:
-            query_filter[StatusCore._test_id] = args['test_id']
+            if args['test_id'][0] == '!':
+                query_filter[StatusCore._test_id] = {'$ne': args['test_id'][1:]}
+            else:
+                query_filter[StatusCore._test_id] = args['test_id']
             query['test_id'] = args['test_id']
         if args['status'] is not None:
-            query_filter[StatusCore._status] = args['status']
+            if args['status'][0] == '!':
+                query_filter[StatusCore._status] = {'$ne': args['status'][1:]}
+            else:
+                query_filter[StatusCore._status] = args['status']
             query['status'] = args['status']
         if args['type'] is not None:
-            query_filter[StatusCore._type] = args['type']
+            if args['type'][0] == '!':
+                query_filter[StatusCore._type] = {'$ne': args['type'][1:]}
+            else:
+                query_filter[StatusCore._type] = args['type']
             query['type'] = args['type']
         if args['field'] is not None and args['value'] is not None:
-            query_filter[StatusCore._details + '.' + args['field']] = args['value']
+            if args['value'][0] == '!':
+                query_filter[StatusCore._details + '.' + args['field']] = {'$ne': args['value'][1:]}
+            else:
+                query_filter[StatusCore._details + '.' + args['field']] = args['value']
             query['field'] = args['field']
             query['value'] = args['value']
         i_field = 1
         next_field = True
         while next_field:
             if args['field{0}'.format(i_field)] is not None and args['value{0}'.format(i_field)] is not None:
-                query_filter[StatusCore._details + '.' + args['field{0}'.format(i_field)]] = args['value{0}'.format(i_field)]
+                if args['value{0}'.format(i_field)][0] == '!':
+                    query_filter[StatusCore._details + '.' + args['field{0}'.format(i_field)]] = {'$ne': args['value{0}'.format(i_field)][1:]}
+                else:
+                    query_filter[StatusCore._details + '.' + args['field{0}'.format(i_field)]] = args['value{0}'.format(i_field)]
                 query['field{0}'.format(i_field)] = args['field{0}'.format(i_field)]
                 query['value{0}'.format(i_field)] = args['value{0}'.format(i_field)]
                 i_field += 1
