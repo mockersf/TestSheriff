@@ -39,8 +39,11 @@
               <div class="col-lg-1" style="padding-top: 3px;">
                 <span class="label" style="font-size: 90%;" ng-class="{'label-success': status.status == 'SUCCESS', 'label-danger': status.status == 'FAILURE', 'label-warning': status.status == 'UNKNOWN'}">{{status.status}}</span>
               </div>
-              <div class="col-lg-8">
+              <div class="col-lg-7">
                 {{status.test_id}}
+              </div>
+              <div class="col-lg-1">
+                <button type="button" style="font-size: 70%; padding-top: 3px; padding-bottom: 3px; padding-left: 7px; padding-right: 7px;" class="btn btn-danger" ng-click="ls.remove_status(status);$event.stopPropagation()">Remove</button>
               </div>
               <div class="pull-right col-lg-3">
                 <div class="col-lg-8">
@@ -51,7 +54,7 @@
                 </div>
               </div>
             </div>
-            <br ng-show="status.show_details" />
+            <br ng-show="status.show_details"/>
             <div ng-show="status.show_details" style="color: #333;">
               <ul class="list-group">
                 <li class="list-group-item">

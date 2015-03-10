@@ -17,7 +17,7 @@ nb_item = 15;
     this.continuous = false;
     this.continuous_interval = false
     this.next_page = "";
-    this.loaded_pages = []
+    this.loaded_pages = [];
 
     this.get_last = function() {
       this.filter = false;
@@ -30,7 +30,7 @@ nb_item = 15;
       } else {
         $interval.cancel(this.continuous_interval);
       }
-    }
+    };
 
     this.get_last_filtered = function() {
       var filter_query = '';
@@ -60,7 +60,7 @@ nb_item = 15;
     };
 
     this.get_next_page = function() {
-      next_page = self.next_page;
+      var next_page = self.next_page;
       if ((next_page != "") && (self.loaded_pages.indexOf(next_page) == -1)) {
         this.loaded_pages.push(next_page);
         $http.get(self.next_page)
@@ -85,7 +85,7 @@ nb_item = 15;
     this.toggle_filter = function(key) {
       this.filter[key]['enabled'] = !this.filter[key]['enabled'];
       this.get_last_filtered()
-    }
+    };
 
     this.add_filter_open = function() {
       var modalInstance = $modal.open({
@@ -93,7 +93,7 @@ nb_item = 15;
         controller: 'AddFilter'
       });
       modalInstance.result.then(function (filter) {
-        is_details = false;
+        var is_details = false;
         if (['status', 'test_id', 'type'].indexOf(filter['field']) == -1) { is_details = true; }
         if (filter['field'] != "") {
           self.add_filter(filter['field'], filter['value'], is_details);
@@ -101,7 +101,13 @@ nb_item = 15;
       });
     };
 
-  }])
+    this.remove_status = function(status) {
+      console.log(status['_links']['self']['href'])
+      $http.delete(status['_links']['self']['href']);
+      self.get_last_filtered()
+    };
+
+  }]);
 
 
   app.controller('AddFilter', ['$scope', '$modalInstance', function ($scope, $modalInstance) {
